@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!pacienteId) {
         alert('No has iniciado sesión.');
-        window.location.href = '../login.html'; // Redirige al login si no hay sesión
+        window.location.href = 'login.html'; // Redirige al login si no hay sesión
         return;
     }
 

@@ -30,49 +30,52 @@
   </div>
 
   <script>
-  const form = document.getElementById('loginForm');
-  const msg = document.getElementById('msg');
+    const form = document.getElementById('loginForm');
+    const msg = document.getElementById('msg');
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    msg.textContent = '';
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
 
-    const data = Object.fromEntries(new FormData(form).entries());
+      const data = Object.fromEntries(new FormData(form).entries());
 
-    try {
-      const res = await fetch(window.BACKEND_URL + '/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+      try {
+        const res = await fetch(window.BACKEND_URL + '/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
 
-      const body = await res.json();
+        const body = await res.json();
 
-      if (res.ok) {
-        msg.style.color = 'green';
-        msg.textContent = 'Login exitoso';
+        if (res.ok) {
+          msg.style.color = 'green';
+          msg.textContent = 'Login exitoso';
 
-        // Guarda sesión en el navegador
-        localStorage.setItem('token', body.token);
-        localStorage.setItem('usuarioId', body.usuarioId);
-        localStorage.setItem('rolId', body.rolId);
+          // Guarda sesión en el navegador
+          localStorage.setItem('token', body.token);
+          localStorage.setItem('usuarioId', body.usuarioId);
+          localStorage.setItem('rolId', body.rolId);
 
-        // Redirige según rol
-        if (body.rolId === 1) {
-          window.location.href = '../pages/dashboard_medico.html';
+          // Redirige según rol
+          if (body.rolId === 1) {
+            localStorage.setItem('medicoId', body.medicoId);
+            window.location.href = '../pages/dashboard_medico.html';
+          } else {
+            localStorage.setItem('pacienteId', body.pacienteId);
+            localStorage.setItem('nombreUsuario', body.nombreUsuario);
+            window.location.href = '../pages/dashboard_paciente.html';
+          }
         } else {
-          window.location.href = '../pages/dashboard_paciente.html';
+          msg.style.color = 'crimson';
+          msg.textContent = body.error || 'Credenciales inválidas';
         }
-      } else {
-        msg.style.color = 'crimson';
-        msg.textContent = body.error || 'Credenciales inválidas';
-      }
 
-    } catch (err) {
-      msg.style.color = 'crimson';
-      msg.textContent = 'Error de red';
-    }
-  });
+      } catch (err) {
+        msg.style.color = 'crimson';
+        msg.textContent = 'Error de red';
+      }
+    });
 </script>
 </body>
 </html>

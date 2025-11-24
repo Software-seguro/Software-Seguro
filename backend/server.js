@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const sql = require('mssql');
 const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 app.use(cors());
@@ -111,27 +112,34 @@ app.post('/api/login', async (req, res) => {
     if (!email || !password)
       return res.status(400).json({ error: 'Email y contraseña requeridos' });
 
-    // ---------------- MOCK MODE ----------------
     if (useMock) {
-      const user = mock.users.find(
-        u => u.Email.toLowerCase() === email.toLowerCase()
-      );
+      const user = mock.users.find(u => u.Email.toLowerCase() === email.toLowerCase());
       if (!user) return res.status(401).json({ error: 'Credenciales inválidas' });
-
       const ok = await bcrypt.compare(password, user.PasswordHash);
       if (!ok) return res.status(401).json({ error: 'Credenciales inválidas' });
+
+      // Aquí debes obtener pacienteId y nombreUsuario si el rol es paciente (2)
+      let pacienteId = null;
+      let nombreUsuario = null;
+      if (user.RolID === 2) {
+        const paciente = mock.patients.find(p => p.UsuarioID === user.UsuarioID);
+        if (paciente) {
+          pacienteId = paciente.PacienteID;
+          nombreUsuario = paciente.Nombre;
+        }
+      }
 
       return res.json({
         ok: true,
         usuarioId: user.UsuarioID,
         rolId: user.RolID,
-        token: uuidv4()  // token simulado
+        pacienteId,
+        nombreUsuario,
+        token: uuidv4()
       });
     }
 
-    // ---------------- REAL DB MODE ----------------
-    if (!pool)
-      return res.status(503).json({ error: 'DB no conectada' });
+    if (!pool) return res.status(503).json({ error: 'DB no conectada' });
 
     const r = await pool.request()
       .input('Email', sql.NVarChar(100), email)
@@ -145,12 +153,26 @@ app.post('/api/login', async (req, res) => {
     if (!ok)
       return res.status(401).json({ error: 'Credenciales inválidas' });
 
-    // Respuesta final
+    // Buscar pacienteId y nombreUsuario solo si rol es paciente
+    let pacienteId = null;
+    let nombreUsuario = null;
+    if (row.RolID === 2) {
+      const pacienteResult = await pool.request()
+        .input('UsuarioID', sql.Int, row.UsuarioID)
+        .query('SELECT PacienteID, Nombre FROM Pacientes WHERE UsuarioID = @UsuarioID');
+      if (pacienteResult.recordset.length) {
+        pacienteId = pacienteResult.recordset[0].PacienteID;
+        nombreUsuario = pacienteResult.recordset[0].Nombre;
+      }
+    }
+
     return res.json({
       ok: true,
       usuarioId: row.UsuarioID,
       rolId: row.RolID,
-      token: uuidv4() // en futuro puedes usar JWT
+      pacienteId,
+      nombreUsuario,
+      token: uuidv4() // token o JWT real en producción
     });
 
   } catch (err) {
@@ -158,6 +180,47 @@ app.post('/api/login', async (req, res) => {
     return res.status(500).json({ error: 'Error interno' });
   }
 });
+
+// GET /api/paciente/:id/consultas
+app.get('/api/paciente/:id/consultas', async (req, res) => {
+  try {
+    const pacienteId = parseInt(req.params.id);
+
+    if (!pacienteId)
+      return res.status(400).json({ error: "ID inválido" });
+
+    // Si estás en MOCK, puedes responder vacío:
+    if (useMock) {
+      return res.json([]);
+    }
+
+    if (!pool)
+      return res.status(503).json({ error: "DB no conectada" });
+
+    const r = await pool.request()
+      .input("PacienteID", sql.Int, pacienteId)
+      .query(`
+        SELECT 
+          C.ConsultaID,
+          C.FechaConsulta,
+          CONCAT(M.Nombre, ' ', M.Apellido) AS Medico,
+          C.MotivoConsulta,
+          C.Diagnostico,
+          C.Tratamiento
+        FROM Consultas C
+        INNER JOIN Medicos M ON M.MedicoID = C.MedicoID
+        WHERE C.PacienteID = @PacienteID
+        ORDER BY C.FechaConsulta DESC
+      `);
+
+    return res.json(r.recordset);
+
+  } catch (err) {
+    console.error("consultas error", err);
+    return res.status(500).json({ error: "Error interno" });
+  }
+});
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Backend API listening on ${PORT}`));
