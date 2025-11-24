@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Restablecer contraseña</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="config.js"></script>
+</head>
+<body>
+  <div class="card">
+    <h1>Restablecer contraseña</h1>
+    <p class="small">Introduce tu nueva contraseña.</p>
+    <form id="resetForm">
+      <label>Nueva contraseña
+        <input type="password" name="password" required>
+      </label>
+      <label>Confirmar contraseña
+        <input type="password" name="confirm" required>
+      </label>
+      <button type="submit">Cambiar contraseña</button>
+    </form>
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const token = params.get('token');
+    const form = document.getElementById('resetForm');
+    const msg = document.getElementById('msg');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+      const fd = new FormData(form);
+      const password = fd.get('password');
+      const confirm = fd.get('confirm');
+      if (password !== confirm) { msg.textContent = 'Las contraseñas no coinciden'; msg.style.color='crimson'; return; }
+      if (!token) { msg.textContent = 'Token faltante en la URL'; msg.style.color='crimson'; return; }
+      try {
+        const res = await fetch((window.BACKEND_URL || '') + '/api/reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, password })
+        });
+        if (res.ok) {
+          msg.textContent = 'Contraseña actualizada.';
+          msg.style.color = 'green';
+          form.reset();
+        } else {
+          const body = await res.json();
+          msg.textContent = body.error || 'Error';
+          msg.style.color = 'crimson';
+        }
+      } catch (err) {
+        msg.textContent = 'Error de red';
+        msg.style.color = 'crimson';
+      }
+    });
+  </script>
+</body>
+</html>
