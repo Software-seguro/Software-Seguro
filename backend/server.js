@@ -17,26 +17,31 @@ const dbConfig = {
 };
 
 let pool;
+let useMock = false;
+const mock = {
+  users: [], // {UsuarioID, Email, PasswordHash, RolID}
+  patients: [], // {PacienteID, UsuarioID, Nombre, Apellido, FechaNacimiento, Identificacion, TelefonoContacto}
+  resetTokens: [], // {Token, UsuarioID, Expira}
+  nextUserId: 1,
+  nextPacienteId: 1
+};
 async function initDb() {
+  // Intenta conectar al pool. No ejecutar DDL (crear tablas) aquí —
+  // la base de datos ya existe y no queremos necesitar permisos de DDL.
   pool = await sql.connect(dbConfig);
-
-  // Crear tabla ResetTokens si no existe
-  const createTableSql = `
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ResetTokens')
-BEGIN
-    CREATE TABLE ResetTokens (
-        Token NVARCHAR(100) PRIMARY KEY,
-        UsuarioID INT NOT NULL,
-        Expira DATETIME NOT NULL
-    );
-END
-`;
-  await pool.request().query(createTableSql);
 }
 
 initDb().catch(err => {
   console.error('Error inicializando BD:', err.message || err);
-  // Do not exit: we prefer server to start to allow diagnostics; endpoints will fail until DB is reachable.
+  console.warn('Activando modo MOCK en memoria. La aplicación funcionará para demo sin base de datos.');
+  useMock = true;
+  // seed mock with an example user (medico and paciente from original seed)
+  // medico
+  mock.users.push({ UsuarioID: mock.nextUserId++, Email: 'dr.juan@hospital.com', PasswordHash: 'hash_simulado_123456', RolID: 1 });
+  mock.patients.push({ PacienteID: mock.nextPacienteId++, UsuarioID: mock.nextUserId - 1, Nombre: 'Juan', Apellido: 'Perez', FechaNacimiento: '1980-01-01', Identificacion: 'MED-998877', TelefonoContacto: null });
+  // paciente demo
+  mock.users.push({ UsuarioID: mock.nextUserId++, Email: 'ana.garcia@email.com', PasswordHash: 'hash_simulado_123456', RolID: 2 });
+  mock.patients.push({ PacienteID: mock.nextPacienteId++, UsuarioID: mock.nextUserId - 1, Nombre: 'Ana', Apellido: 'Garcia', FechaNacimiento: '1990-05-15', Identificacion: '1122334455', TelefonoContacto: null });
 });
 
 // Nota: este backend expone únicamente la API. El frontend se sirve por separado
@@ -49,6 +54,19 @@ app.post('/api/signup', async (req, res) => {
     if (!email || !password || !nombre || !apellido || !fechaNacimiento || !identificacion) {
       return res.status(400).json({ error: 'Faltan campos requeridos' });
     }
+    if (useMock) {
+      // mock signup
+      if (mock.users.find(u => u.Email.toLowerCase() === String(email).toLowerCase())) {
+        return res.status(409).json({ error: 'El correo o identificador ya existe' });
+      }
+      const hashed = await bcrypt.hash(password, 10);
+      const usuarioId = mock.nextUserId++;
+      mock.users.push({ UsuarioID: usuarioId, Email: email, PasswordHash: hashed, RolID: 2 });
+      const pacienteId = mock.nextPacienteId++;
+      mock.patients.push({ PacienteID: pacienteId, UsuarioID: usuarioId, Nombre: nombre, Apellido: apellido, FechaNacimiento: fechaNacimiento, Identificacion: identificacion, TelefonoContacto: telefono || null });
+      return res.json({ ok: true, usuarioId });
+    }
+
     if (!pool) return res.status(503).json({ error: 'DB no conectada' });
 
     const hashed = await bcrypt.hash(password, 10);
@@ -88,6 +106,19 @@ app.post('/api/forgot', async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email requerido' });
+    if (useMock) {
+      const user = mock.users.find(u => u.Email.toLowerCase() === String(email).toLowerCase());
+      if (!user) return res.json({ ok: true });
+      const usuarioId = user.UsuarioID;
+      const token = uuidv4();
+      const expira = new Date(Date.now() + 1000 * 60 * 60);
+      mock.resetTokens.push({ Token: token, UsuarioID: usuarioId, Expira: expira.toISOString() });
+      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+      const resetLink = `${baseUrl.replace(/:\d+$/, ':8000')}/reset.html?token=${token}`; // point to frontend served on 8000 for demo
+      console.log('Reset link (mock):', resetLink);
+      return res.json({ ok: true });
+    }
+
     if (!pool) return res.status(503).json({ error: 'DB no conectada' });
 
     const r = await pool.request().input('Email', sql.NVarChar(100), email).query('SELECT UsuarioID FROM Usuarios WHERE Email = @Email');
@@ -111,6 +142,19 @@ app.post('/api/reset', async (req, res) => {
   try {
     const { token, password } = req.body;
     if (!token || !password) return res.status(400).json({ error: 'Token y password requeridos' });
+    if (useMock) {
+      const rec = mock.resetTokens.find(r => r.Token === token);
+      if (!rec) return res.status(400).json({ error: 'Token inválido o expirado' });
+      if (new Date(rec.Expira) < new Date()) return res.status(400).json({ error: 'Token expirado' });
+      const hashed = await bcrypt.hash(password, 10);
+      const user = mock.users.find(u => u.UsuarioID === rec.UsuarioID);
+      if (!user) return res.status(400).json({ error: 'Usuario no encontrado' });
+      user.PasswordHash = hashed;
+      // remove token
+      mock.resetTokens = mock.resetTokens.filter(r => r.Token !== token);
+      return res.json({ ok: true });
+    }
+
     if (!pool) return res.status(503).json({ error: 'DB no conectada' });
 
     const r = await pool.request().input('Token', sql.NVarChar(100), token).query('SELECT UsuarioID, Expira FROM ResetTokens WHERE Token = @Token');
