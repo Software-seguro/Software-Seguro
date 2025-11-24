@@ -4,19 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Registro - Signup</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="config.js"></script>
+  <link rel="stylesheet" href="../css/styles.css">
+  <script src="../../config.js"></script>
 </head>
 <body>
   <div class="card">
     <h1>Crear cuenta</h1>
-    <p class="small">Crea tu cuenta como paciente. Los médicos serán añadidos por administradores.</p>
+    <p class="small">Crea tu cuenta como paciente o médico.</p>
     <form id="signupForm">
       <label>Email
         <input type="email" name="email" required>
       </label>
       <label>Contraseña
         <input type="password" name="password" required>
+      </label>
+      <label>Rol
+        <select name="role" id="roleSelect">
+          <option value="paciente" selected>Paciente</option>
+          <option value="medico">Médico</option>
+        </select>
       </label>
       <label>Nombre
         <input type="text" name="nombre" required>
@@ -33,21 +39,44 @@
       <label>Teléfono
         <input type="text" name="telefono">
       </label>
+
+      <div id="doctorFields" style="display:none">
+        <label>Especialidad
+          <input type="text" name="especialidad" id="especialidad">
+        </label>
+        <label>Número de licencia
+          <input type="text" name="numeroLicencia" id="numeroLicencia">
+        </label>
+      </div>
+
       <button type="submit">Registrar</button>
     </form>
     <div class="msg" id="msg"></div>
     <div class="help">
-      <a href="forgot.html">¿Olvidaste tu contraseña?</a>
+      <a href="forgot.html">¿Olvidaste tu contraseña?</a> • <a href="login.html">Iniciar sesión</a>
     </div>
   </div>
 
   <script>
     const form = document.getElementById('signupForm');
     const msg = document.getElementById('msg');
+    const roleSelect = document.getElementById('roleSelect');
+    const doctorFields = document.getElementById('doctorFields');
+    roleSelect.addEventListener('change', () => {
+      doctorFields.style.display = roleSelect.value === 'medico' ? 'block' : 'none';
+    });
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       msg.textContent = '';
       const data = Object.fromEntries(new FormData(form).entries());
+      if (data.role === 'medico') {
+        if (!data.especialidad || !data.numeroLicencia) {
+          msg.textContent = 'Especialidad y número de licencia son requeridos para médicos';
+          msg.style.color = 'crimson';
+          return;
+        }
+      }
       try {
         const res = await fetch((window.BACKEND_URL || '') + '/api/signup', {
           method: 'POST',
@@ -59,6 +88,7 @@
           msg.textContent = 'Registro exitoso. Inicia sesión.';
           msg.style.color = 'green';
           form.reset();
+          doctorFields.style.display = 'none';
         } else {
           msg.textContent = body.error || 'Error en el registro';
           msg.style.color = 'crimson';

@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Restablecer contraseña</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="config.js"></script>
+  <link rel="stylesheet" href="../css/styles.css">
+  <script src="../../config.js"></script>
 </head>
 <body>
   <div class="card">
     <h1>Restablecer contraseña</h1>
-    <p class="small">Introduce tu nueva contraseña.</p>
+    <p class="small">Introduce tu nueva contraseña y confírmala.</p>
     <form id="resetForm">
       <label>Nueva contraseña
         <input type="password" name="password" required>
@@ -21,6 +21,7 @@
       <button type="submit">Cambiar contraseña</button>
     </form>
     <div class="msg" id="msg"></div>
+    <div class="help"><a href="login.html">Iniciar sesión</a> • <a href="signup.html">Crear cuenta</a></div>
   </div>
 
   <script>
@@ -56,6 +57,11 @@
         msg.style.color = 'crimson';
       }
     });
+    // show token missing immediately
+    if (!token) {
+      msg.textContent = 'Token faltante en la URL';
+      msg.style.color = 'crimson';
+    }
   </script>
 </body>
 </html>
