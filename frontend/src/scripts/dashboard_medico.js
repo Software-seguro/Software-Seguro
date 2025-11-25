@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!currentMedicoId) {
         alert('Acceso denegado. Debes ser médico.');
-        window.location.href = '../login.html';
+        window.location.href = '../pages/login.html';
         return;
     }
 
@@ -182,15 +182,26 @@ function cerrarModales() {
 
 async function guardarConsulta(e) {
     e.preventDefault();
+    
+    // Validar que tengamos el ID del médico (revisar localStorage)
+    if (!currentMedicoId) {
+        alert("Error de sesión: No se identifica al médico. Por favor cierra sesión y vuelve a entrar.");
+        return;
+    }
+
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
 
-    // Agregamos IDs necesarios
     const payload = {
-        ...data,
-        pacienteId: currentPacienteId,
-        medicoId: currentMedicoId
+        motivo: data.motivo,
+        sintomas: data.sintomas,
+        diagnostico: data.diagnostico,
+        tratamiento: data.tratamiento,
+        pacienteId: parseInt(currentPacienteId), // Asegurar número
+        medicoId: parseInt(currentMedicoId)      // Asegurar número
     };
+
+    console.log("Enviando consulta:", payload); // Para depuración
 
     try {
         const res = await fetch(`${API_URL}/consultas`, {
@@ -199,26 +210,36 @@ async function guardarConsulta(e) {
             body: JSON.stringify(payload)
         });
 
+        const result = await res.json();
+
         if(res.ok) {
-            alert('Consulta registrada');
+            alert('Consulta registrada correctamente');
             cerrarModales();
-            renderHistoria(currentPacienteId); // Recargar
+            renderHistoria(currentPacienteId);
         } else {
-            alert('Error al guardar');
+            alert('Error al guardar: ' + (result.error || 'Desconocido'));
         }
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+        console.error(err);
+        alert("Error de conexión con el servidor");
+    }
 }
 
 async function guardarExamen(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
-
+    
+    // Obtener consultaId explícitamente del input hidden
+    const consultaIdVal = document.getElementById('inputConsultaIdExamen').value;
+    
     const payload = {
-        ...data,
-        pacienteId: currentPacienteId,
-        // consultaId viene del input hidden
+        tipo: formData.get('tipo'),
+        observaciones: formData.get('observaciones'),
+        pacienteId: parseInt(currentPacienteId),
+        consultaId: parseInt(consultaIdVal) // Asegurar número
     };
+
+    console.log("Enviando examen:", payload);
 
     try {
         const res = await fetch(`${API_URL}/examenes`, {
@@ -227,25 +248,22 @@ async function guardarExamen(e) {
             body: JSON.stringify(payload)
         });
 
+        const result = await res.json();
+
         if(res.ok) {
-            alert('Examen agregado');
+            alert('Examen agregado correctamente');
             cerrarModales();
             renderHistoria(currentPacienteId);
         } else {
-            alert('Error al guardar');
+            alert('Error al guardar: ' + (result.error || 'Desconocido'));
         }
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+        console.error(err);
+        alert("Error de conexión");
+    }
 }
 
 function logout() {
     localStorage.clear();
-   localStorage.removeItem('token');
-    localStorage.removeItem('usuarioId');
-    localStorage.removeItem('rolId');
-    localStorage.removeItem('pacienteId');
-    localStorage.removeItem('nombreUsuario');
-    
-    // 2. Redirigir
-    // Como dashboard_paciente.html y login.html están en la misma carpeta ("pages"):
-    window.location.href = "login.html"; 
+    window.location.href = '../pages/login.html';
 }

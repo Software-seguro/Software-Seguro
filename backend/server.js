@@ -140,51 +140,139 @@ app.post('/api/signup', async (req, res) => {
   }
 });
 
-// POST /api/forgot - Cambio directo de contraseña
+
+
+// POST /api/forgot (CAMBIO DIRECTO DE CONTRASEÑA)
 app.post('/api/forgot', async (req, res) => {
   try {
-    // 1. Recibimos email y la nueva password desde el formulario
-    const { email, password } = req.body;
-
-    // Validación básica
-    if (!email || !password) {
-      return res.status(400).json({ error: 'El email y la nueva contraseña son requeridos' });
+    const { email, password, nombre, apellido, fechaNacimiento, identificacion, telefono } = req.body;
+    if (!email || !password || !nombre || !apellido || !fechaNacimiento || !identificacion) {
+      return res.status(400).json({ error: 'Faltan campos requeridos' });
     }
-
-    // 2. Encriptamos la nueva contraseña
-    const hashed = await bcrypt.hash(password, 10);
-
-    // --- MODO MOCK (Si no hay base de datos conectada) ---
     if (useMock) {
-      const user = mock.users.find(u => u.Email.toLowerCase() === String(email).toLowerCase());
-      if (!user) {
-        return res.status(404).json({ error: 'Usuario no encontrado (Mock)' });
+      // mock signup
+      if (mock.users.find(u => u.Email.toLowerCase() === String(email).toLowerCase())) {
+        return res.status(409).json({ error: 'El correo o identificador ya existe' });
       }
-      user.PasswordHash = hashed; // Actualizamos en memoria
-      return res.json({ ok: true, message: 'Contraseña actualizada correctamente' });
+      const hashed = await bcrypt.hash(password, 10);
+      const usuarioId = mock.nextUserId++;
+      mock.users.push({ UsuarioID: usuarioId, Email: email, PasswordHash: hashed, RolID: 2 });
+      const pacienteId = mock.nextPacienteId++;
+      mock.patients.push({ PacienteID: pacienteId, UsuarioID: usuarioId, Nombre: nombre, Apellido: apellido, FechaNacimiento: fechaNacimiento, Identificacion: identificacion, TelefonoContacto: telefono || null });
+      return res.json({ ok: true, usuarioId });
     }
 
-    // --- MODO SQL SERVER ---
-    if (!pool) return res.status(503).json({ error: 'Base de datos no conectada' });
+    if (!pool) return res.status(503).json({ error: 'DB no conectada' });
 
-    // 3. Ejecutamos el UPDATE directo en la tabla Usuarios
-    // Usamos rowCount o rowsAffected para saber si existía el usuario
-    const result = await pool.request()
+    const hashed = await bcrypt.hash(password, 10);
+    const tx = new sql.Transaction(pool);
+    await tx.begin();
+    try {
+      const r = await new sql.Request(tx)
         .input('Email', sql.NVarChar(100), email)
-        .input('PasswordHash', sql.NVarChar(255), hashed) // Tu BD define NVARCHAR(255)
-        .query(`UPDATE Usuarios SET PasswordHash = @PasswordHash WHERE Email = @Email`);
-
-    // Verificamos si se actualizó alguna fila
-    if (result.rowsAffected[0] === 0) {
-        return res.status(404).json({ error: 'No existe ninguna cuenta con este correo' });
+        .input('PasswordHash', sql.NVarChar(255), hashed)
+        .input('RolID', sql.Int, 2)
+        .query(`INSERT INTO Usuarios (Email, PasswordHash, RolID) OUTPUT INSERTED.UsuarioID VALUES (@Email,@PasswordHash,@RolID)`);
+      const usuarioId = r.recordset[0].UsuarioID;
+      await new sql.Request(tx)
+        .input('UsuarioID', sql.Int, usuarioId)
+        .input('Nombre', sql.NVarChar(50), nombre)
+        .input('Apellido', sql.NVarChar(50), apellido)
+        .input('FechaNacimiento', sql.Date, fechaNacimiento)
+        .input('Identificacion', sql.NVarChar(20), identificacion)
+        .input('TelefonoContacto', sql.NVarChar(20), telefono || null)
+        .query('INSERT INTO Pacientes (UsuarioID, Nombre, Apellido, FechaNacimiento, Identificacion, TelefonoContacto) VALUES (@UsuarioID,@Nombre,@Apellido,@FechaNacimiento,@Identificacion,@TelefonoContacto)');
+      await tx.commit();
+      return res.json({ ok: true, usuarioId });
+    } catch (err) {
+      try { await tx.rollback(); } catch (e) {}
+      if (err && err.number === 2627) return res.status(409).json({ error: 'El correo o identificador ya existe' });
+      console.error('signup error', err.message || err);
+      return res.status(500).json({ error: 'Error interno' });
     }
 
-    // 4. Éxito
-    return res.json({ ok: true, message: 'Contraseña cambiada con éxito' });
+    if (!pool) return res.status(503).json({ error: 'DB no conectada' });
+
+    const r = await pool.request()
+      .input('Email', sql.NVarChar(100), email)
+      .query('SELECT UsuarioID, PasswordHash, RolID FROM Usuarios WHERE Email = @Email');
+
+    if (!r.recordset.length)
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+
+    const row = r.recordset[0];
+    const ok = await bcrypt.compare(password, row.PasswordHash);
+    if (!ok)
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+
+    // Buscar pacienteId y nombreUsuario solo si rol es paciente
+    let pacienteId = null;
+    let medicoId = null;
+    let nombreUsuario = null;
+
+    if (row.RolID === 2) { // Paciente
+        const pRes = await pool.request().input('UsuarioID', sql.Int, row.UsuarioID).query('SELECT PacienteID, Nombre, Apellido FROM Pacientes WHERE UsuarioID = @UsuarioID');
+        if (pRes.recordset.length) {
+            pacienteId = pRes.recordset[0].PacienteID;
+            nombreUsuario = `${pRes.recordset[0].Nombre} ${pRes.recordset[0].Apellido}`;
+        }
+    } else if (row.RolID === 1) { // Médico
+        const mRes = await pool.request().input('UsuarioID', sql.Int, row.UsuarioID).query('SELECT MedicoID, Nombre, Apellido FROM Medicos WHERE UsuarioID = @UsuarioID');
+        if (mRes.recordset.length) {
+            medicoId = mRes.recordset[0].MedicoID;
+            nombreUsuario = `Dr. ${mRes.recordset[0].Nombre} ${mRes.recordset[0].Apellido}`;
+        }
+    }
+
+    return res.json({
+        ok: true,
+        usuarioId: row.UsuarioID,
+        rolId: row.RolID,
+        pacienteId, 
+        medicoId,
+        nombreUsuario,
+        token: uuidv4()
+    });
 
   } catch (err) {
-    console.error('Error en /api/forgot:', err.message || err);
-    return res.status(500).json({ error: 'Error interno del servidor' });
+    console.error(err);
+    return res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// POST /api/forgot
+app.post('/api/forgot', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email requerido' });
+    if (useMock) {
+      const user = mock.users.find(u => u.Email.toLowerCase() === String(email).toLowerCase());
+      if (!user) return res.json({ ok: true });
+      const usuarioId = user.UsuarioID;
+      const token = uuidv4();
+      const expira = new Date(Date.now() + 1000 * 60 * 60);
+      mock.resetTokens.push({ Token: token, UsuarioID: usuarioId, Expira: expira.toISOString() });
+      const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+      const resetLink = `${baseUrl.replace(/:\d+$/, ':8000')}/reset.html?token=${token}`; // point to frontend served on 8000 for demo
+      console.log('Reset link (mock):', resetLink);
+      return res.json({ ok: true });
+    }
+
+    if (!pool) return res.status(503).json({ error: 'DB no conectada' });
+
+    const r = await pool.request().input('Email', sql.NVarChar(100), email).query('SELECT UsuarioID FROM Usuarios WHERE Email = @Email');
+    if (!r.recordset.length) return res.json({ ok: true });
+    const usuarioId = r.recordset[0].UsuarioID;
+    const token = uuidv4();
+    const expira = new Date(Date.now() + 1000 * 60 * 60);
+    await pool.request().input('Token', sql.NVarChar(100), token).input('UsuarioID', sql.Int, usuarioId).input('Expira', sql.DateTime, expira).query('INSERT INTO ResetTokens (Token, UsuarioID, Expira) VALUES (@Token,@UsuarioID,@Expira)');
+    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+    const resetLink = `${baseUrl}/reset.html?token=${token}`; // point to frontend reset page
+    console.log('Reset link (simulado):', resetLink);
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('forgot error', err.message || err);
+    return res.status(500).json({ error: 'Error interno' });
   }
 });
 
@@ -233,11 +321,20 @@ app.get('/api/pacientes', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 2. Crear nueva Consulta
+// 2. Crear nueva Consulta (BLINDADO)
 app.post('/api/consultas', async (req, res) => {
-    const { pacienteId, medicoId, motivo, diagnostico, tratamiento, sintomas } = req.body;
+    // 1. Convertir a enteros para evitar errores de tipo en SQL
+    const pacienteId = parseInt(req.body.pacienteId);
+    const medicoId = parseInt(req.body.medicoId);
+    const { motivo, diagnostico, tratamiento, sintomas } = req.body;
+
+    // 2. Validación estricta
+    if (!pacienteId || !medicoId) {
+        return res.status(400).json({ error: "Falta ID de Paciente o Médico." });
+    }
+
     try {
-        if (!pool) return res.json({ ok: true, id: 999 }); // Mock rápido
+        if (!pool) return res.status(503).json({ error: "DB no conectada" });
         
         const r = await pool.request()
             .input('PacienteID', sql.Int, pacienteId)
@@ -252,29 +349,42 @@ app.post('/api/consultas', async (req, res) => {
                 VALUES (@PacienteID, @MedicoID, @Motivo, @Diagnostico, @Tratamiento, @Sintomas)
             `);
         res.json({ ok: true, consultaId: r.recordset[0].ConsultaID });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error("Error al crear consulta:", err); // Ver esto en la consola del servidor
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
-// 3. Crear nuevo Examen (Ligado a consulta)
+// 3. Crear nuevo Examen (BLINDADO)
 app.post('/api/examenes', async (req, res) => {
-    const { pacienteId, consultaId, tipo, observaciones } = req.body;
-    // Nota: Aquí simplificamos la "RutaArchivo" como un texto simulado para no complicar con subida de archivos real ahora.
+    // Convertir IDs explícitamente
+    const pacienteId = parseInt(req.body.pacienteId);
+    const consultaId = parseInt(req.body.consultaId); // Viene del input hidden
+    const { tipo, observaciones } = req.body;
+    
     const rutaFake = "/uploads/demo.pdf"; 
+
+    if (!pacienteId || !consultaId) {
+        return res.status(400).json({ error: "Falta ID de Paciente o Consulta." });
+    }
     
     try {
-        if (!pool) return res.json({ ok: true });
+        if (!pool) return res.status(503).json({ error: "DB no conectada" });
 
         await pool.request()
             .input('PacienteID', sql.Int, pacienteId)
-            .input('ConsultaID', sql.Int, consultaId) // Puede ser null si es examen suelto, pero el Dr lo ligará.
+            .input('ConsultaID', sql.Int, consultaId)
             .input('Tipo', sql.NVarChar, tipo)
             .input('Ruta', sql.NVarChar, rutaFake)
-            .input('Obs', sql.NVarChar, observaciones)
+            .input('Obs', sql.NVarChar, observaciones || '')
             .input('Fecha', sql.Date, new Date())
             .query(`INSERT INTO Examenes (PacienteID, ConsultaID, TipoExamen, RutaArchivo, ObservacionesResultados, FechaRealizacion) VALUES (@PacienteID, @ConsultaID, @Tipo, @Ruta, @Obs, @Fecha)`);
             
         res.json({ ok: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error("Error al crear examen:", err);
+        res.status(500).json({ error: err.message }); 
+    }
 });
 
 // 4. Crear Paciente Rápido (Solo datos demográficos básicos para no complicar usuario/login)
@@ -285,6 +395,75 @@ app.post('/api/pacientes', async (req, res) => {
     return res.status(501).json({ error: "Implementar creación completa con Transacción SQL (Usuario + Paciente)" });
 });
 
+// GET /api/paciente/:id/consultas
+app.get('/api/paciente/:id/consultas', async (req, res) => {
+  try {
+    const pacienteId = parseInt(req.params.id);
+    if (!pacienteId) return res.status(400).json({ error: "ID inválido" });
+
+    if (useMock) return res.json([]); // Retorno vacío si es Mock
+
+    if (!pool) return res.status(503).json({ error: "DB no conectada" });
+
+    const r = await pool.request()
+      .input("PacienteID", sql.Int, pacienteId)
+      .query(`
+        SELECT 
+          C.ConsultaID,
+          C.FechaConsulta,
+          M.Nombre + ' ' + M.Apellido AS Medico,
+          C.MotivoConsulta,
+          C.Diagnostico,
+          C.Tratamiento
+        FROM Consultas C
+        INNER JOIN Medicos M ON M.MedicoID = C.MedicoID
+        WHERE C.PacienteID = @PacienteID
+        ORDER BY C.FechaConsulta DESC
+      `);
+
+    return res.json(r.recordset);
+  } catch (err) {
+    console.error("consultas error", err);
+    return res.status(500).json({ error: "Error interno" });
+  }
+});
+
+// GET /api/paciente/:id/examenes
+app.get('/api/paciente/:id/examenes', async (req, res) => {
+  try {
+    const pacienteId = parseInt(req.params.id);
+    if (!pacienteId) return res.status(400).json({ error: "ID inválido" });
+
+    if (useMock) return res.json([]);
+
+    if (!pool) return res.status(503).json({ error: "DB no conectada" });
+
+    // Hacemos LEFT JOIN con Consultas para obtener la fecha de la consulta
+    // Esto es vital para que tu frontend agrupe el examen visualmente
+    const r = await pool.request()
+      .input("PacienteID", sql.Int, pacienteId)
+      .query(`
+        SELECT 
+            E.ExamenID,
+            E.ConsultaID,
+            E.TipoExamen,
+            E.FechaRealizacion,
+            E.ObservacionesResultados,
+            E.RutaArchivo,
+            C.FechaConsulta 
+        FROM Examenes E
+        LEFT JOIN Consultas C ON C.ConsultaID = E.ConsultaID
+        WHERE E.PacienteID = @PacienteID
+        ORDER BY E.FechaRealizacion DESC
+      `);
+
+    return res.json(r.recordset);
+
+  } catch (err) {
+    console.error("examenes error", err);
+    return res.status(500).json({ error: "Error interno" });
+  }
+});
 
 // POST /api/login
 app.post('/api/login', async (req, res) => {
@@ -309,8 +488,8 @@ app.post('/api/login', async (req, res) => {
       if (user.RolID === 2) { // Paciente
         const p = mock.patients.find(x => x.UsuarioID === user.UsuarioID);
         if (p) {
-           pacienteId = p.PacienteID;
-           nombreUsuario = `${p.Nombre} ${p.Apellido}`;
+          pacienteId = p.PacienteID;
+          nombreUsuario = `${p.Nombre} ${p.Apellido}`;
         }
       } 
       // Si fuera médico en mock, aquí iría la lógica similar...
@@ -348,23 +527,17 @@ app.post('/api/login', async (req, res) => {
     let nombreUsuario = null;
 
     if (row.RolID === 2) { // Paciente
-       const pRes = await pool.request()
-         .input('UsuarioID', sql.Int, row.UsuarioID)
-         .query('SELECT PacienteID, Nombre, Apellido FROM Pacientes WHERE UsuarioID = @UsuarioID');
-       
-       if (pRes.recordset.length) {
-         pacienteId = pRes.recordset[0].PacienteID;
-         nombreUsuario = `${pRes.recordset[0].Nombre} ${pRes.recordset[0].Apellido}`;
-       }
-    } else if (row.RolID === 1) { // Médico
-       const mRes = await pool.request()
-         .input('UsuarioID', sql.Int, row.UsuarioID)
-         .query('SELECT MedicoID, Nombre, Apellido FROM Medicos WHERE UsuarioID = @UsuarioID');
-
-       if (mRes.recordset.length) {
-         medicoId = mRes.recordset[0].MedicoID;
-         nombreUsuario = `Dr. ${mRes.recordset[0].Nombre} ${mRes.recordset[0].Apellido}`;
-       }
+        const pRes = await pool.request().input('UsuarioID', sql.Int, row.UsuarioID).query('SELECT PacienteID, Nombre, Apellido FROM Pacientes WHERE UsuarioID = @UsuarioID');
+        if (pRes.recordset.length) {
+            pacienteId = pRes.recordset[0].PacienteID;
+            nombreUsuario = `${pRes.recordset[0].Nombre} ${pRes.recordset[0].Apellido}`;
+        }
+    } else if (row.RolID === 1) { // Médico <--- NUEVO BLOQUE
+        const mRes = await pool.request().input('UsuarioID', sql.Int, row.UsuarioID).query('SELECT MedicoID, Nombre, Apellido FROM Medicos WHERE UsuarioID = @UsuarioID');
+        if (mRes.recordset.length) {
+            medicoId = mRes.recordset[0].MedicoID;
+            nombreUsuario = `Dr. ${mRes.recordset[0].Nombre} ${mRes.recordset[0].Apellido}`;
+        }
     }
 
     // 4. Responder al Frontend
@@ -383,5 +556,7 @@ app.post('/api/login', async (req, res) => {
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Backend API listening on ${PORT}`));

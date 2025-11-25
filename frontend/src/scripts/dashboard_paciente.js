@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!pacienteId) {
         alert('No has iniciado sesión.');
-        window.location.href = 'login.html'; // Redirige al login si no hay sesión
+        window.location.href = '../pages/login.html'; // Redirige al login si no hay sesión
         return;
     }
 
@@ -113,13 +113,5 @@ function showSection(sectionId) {
 
 function logout() {
     localStorage.clear();
-    localStorage.removeItem('token');
-    localStorage.removeItem('usuarioId');
-    localStorage.removeItem('rolId');
-    localStorage.removeItem('pacienteId');
-    localStorage.removeItem('nombreUsuario');
-    
-    // 2. Redirigir
-    // Como dashboard_paciente.html y login.html están en la misma carpeta ("pages"):
-    window.location.href = "login.html"; 
+    window.location.href = '../pages/login.html'; // Ajusta la ruta a tu login
 }
