@@ -2,8 +2,8 @@ const API_URL = 'http://localhost:3000/api'; // Ajusta si tu puerto cambia
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Verificar sesión
-    const pacienteId = localStorage.getItem('pacienteId');
-    const nombre = localStorage.getItem('nombreUsuario');
+    const pacienteId = sessionStorage.getItem('pacienteId');
+    const nombre = sessionStorage.getItem('nombreUsuario');
 
     if (!pacienteId) {
         alert('No has iniciado sesión.');
@@ -112,6 +112,6 @@ function showSection(sectionId) {
 }
 
 function logout() {
-    localStorage.clear();
+    sessionStorage.clear();
     window.location.href = '../pages/login.html'; // Ajusta la ruta a tu login
 }

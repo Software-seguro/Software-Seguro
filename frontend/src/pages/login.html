@@ -89,18 +89,19 @@
           msg.textContent = '¡Bienvenido a Apolo!';
 
           // Guardar sesión
-          localStorage.setItem('token', body.token);
-          localStorage.setItem('usuarioId', body.usuarioId);
-          localStorage.setItem('rolId', body.rolId);
+          sessionStorage.setItem('token', body.token);
+          sessionStorage.setItem('usuarioId', body.usuarioId);
+          sessionStorage.setItem('nombreUsuario', body.nombreUsuario);
+          sessionStorage.setItem('rolId', body.rolId);
 
           // Redirección basada en rol (Medico=1, Paciente=2)
           setTimeout(() => {
             if (body.rolId === 1) {
-              localStorage.setItem('medicoId', body.medicoId);
+              sessionStorage.setItem('medicoId', body.medicoId);
               window.location.href = '../pages/dashboard_medico.html';
             } else {
-              localStorage.setItem('pacienteId', body.pacienteId);
-              localStorage.setItem('nombreUsuario', body.nombreUsuario || 'Usuario');
+              sessionStorage.setItem('pacienteId', body.pacienteId);
+              sessionStorage.setItem('nombreUsuario', body.nombreUsuario || 'Usuario');
               window.location.href = '../pages/dashboard_paciente.html';
             }
           }, 500); // Pequeña pausa para ver el mensaje de éxito

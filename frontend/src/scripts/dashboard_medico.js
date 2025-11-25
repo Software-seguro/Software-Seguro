@@ -6,13 +6,14 @@ let currentPacienteId = null; // Paciente seleccionado actualmente
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Verificar Sesión de MÉDICO
-    currentMedicoId = localStorage.getItem('medicoId');
-    const nombre = localStorage.getItem('nombreUsuario');
-    const rol = localStorage.getItem('rolId'); // Debería ser 1 (o lo que definas para medico)
+    const token = sessionStorage.getItem('token');
+    currentMedicoId = sessionStorage.getItem('medicoId');
+    const nombre = sessionStorage.getItem('nombreUsuario');
+    const rol = sessionStorage.getItem('rolId'); // Debería ser 1 (o lo que definas para medico)
 
     if (!currentMedicoId) {
         alert('Acceso denegado. Debes ser médico.');
-        window.location.href = '../pages/login.html';
+        window.location.href = '../login.html';
         return;
     }
 
@@ -182,26 +183,15 @@ function cerrarModales() {
 
 async function guardarConsulta(e) {
     e.preventDefault();
-    
-    // Validar que tengamos el ID del médico (revisar localStorage)
-    if (!currentMedicoId) {
-        alert("Error de sesión: No se identifica al médico. Por favor cierra sesión y vuelve a entrar.");
-        return;
-    }
-
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
 
+    // Agregamos IDs necesarios
     const payload = {
-        motivo: data.motivo,
-        sintomas: data.sintomas,
-        diagnostico: data.diagnostico,
-        tratamiento: data.tratamiento,
-        pacienteId: parseInt(currentPacienteId), // Asegurar número
-        medicoId: parseInt(currentMedicoId)      // Asegurar número
+        ...data,
+        pacienteId: currentPacienteId,
+        medicoId: currentMedicoId
     };
-
-    console.log("Enviando consulta:", payload); // Para depuración
 
     try {
         const res = await fetch(`${API_URL}/consultas`, {
@@ -210,36 +200,26 @@ async function guardarConsulta(e) {
             body: JSON.stringify(payload)
         });
 
-        const result = await res.json();
-
         if(res.ok) {
-            alert('Consulta registrada correctamente');
+            alert('Consulta registrada');
             cerrarModales();
-            renderHistoria(currentPacienteId);
+            renderHistoria(currentPacienteId); // Recargar
         } else {
-            alert('Error al guardar: ' + (result.error || 'Desconocido'));
+            alert('Error al guardar');
         }
-    } catch (err) { 
-        console.error(err);
-        alert("Error de conexión con el servidor");
-    }
+    } catch (err) { console.error(err); }
 }
 
 async function guardarExamen(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
-    
-    // Obtener consultaId explícitamente del input hidden
-    const consultaIdVal = document.getElementById('inputConsultaIdExamen').value;
-    
-    const payload = {
-        tipo: formData.get('tipo'),
-        observaciones: formData.get('observaciones'),
-        pacienteId: parseInt(currentPacienteId),
-        consultaId: parseInt(consultaIdVal) // Asegurar número
-    };
+    const data = Object.fromEntries(formData.entries());
 
-    console.log("Enviando examen:", payload);
+    const payload = {
+        ...data,
+        pacienteId: currentPacienteId,
+        // consultaId viene del input hidden
+    };
 
     try {
         const res = await fetch(`${API_URL}/examenes`, {
@@ -248,22 +228,17 @@ async function guardarExamen(e) {
             body: JSON.stringify(payload)
         });
 
-        const result = await res.json();
-
         if(res.ok) {
-            alert('Examen agregado correctamente');
+            alert('Examen agregado');
             cerrarModales();
             renderHistoria(currentPacienteId);
         } else {
-            alert('Error al guardar: ' + (result.error || 'Desconocido'));
+            alert('Error al guardar');
         }
-    } catch (err) { 
-        console.error(err);
-        alert("Error de conexión");
-    }
+    } catch (err) { console.error(err); }
 }
 
 function logout() {
-    localStorage.clear();
-    window.location.href = '../pages/login.html';
+    sessionStorage.clear();
+     window.location.href = '../pages/login.html';
 }
