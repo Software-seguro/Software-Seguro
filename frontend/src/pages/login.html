@@ -2,30 +2,63 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Login - AppWebAv</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>APOLO - Salud Conectada</title>
   <link rel="stylesheet" href="../css/styles.css">
   <script src="../scripts/config.js"></script>
 </head>
 <body>
-  <div class="card">
-    <h1>Iniciar sesión</h1>
-    <form id="loginForm">
-      <label>Email
-        <input type="email" name="email" required>
-      </label>
-      <label>Contraseña
-        <input type="password" name="password" required>
-      </label>
-      <button type="submit">Entrar</button>
-    </form>
-    <div class="msg" id="msg"></div>
 
-    <div style="display:flex;gap:10px;margin-top:14px">
-      <a href="signup.html"><button type="button">Crear cuenta</button></a>
-      <a href="forgot.html"><button type="button">Olvidé contraseña</button></a>
+  <div class="main-container">
+    
+    <!-- LADO IZQUIERDO: Branding y Propuesta de Valor -->
+    <div class="brand-section">
+      <h1>APOLO</h1>
+      <p>Gestiona tu historial clínico, consultas y conéctate con especialistas de forma segura.</p>
     </div>
-    <p class="small" style="margin-top:12px;color:#666;">Accede con tu cuenta para ver y administrar historias clínicas según tu rol.</p>
+
+    <!-- LADO DERECHO: Tarjeta de Login -->
+    <div class="login-section">
+      <div class="card">
+        
+        <div class="msg" id="msg"></div>
+
+        <form id="loginForm">
+          <div class="form-group">
+            <input 
+              type="email" 
+              name="email" 
+              placeholder="Correo electrónico o usuario" 
+              required 
+              aria-label="Correo electrónico"
+              autofocus>
+          </div>
+          <div class="form-group">
+            <input 
+              type="password" 
+              name="password" 
+              placeholder="Contraseña" 
+              required
+              aria-label="Contraseña">
+          </div>
+          
+          <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+        </form>
+
+        <a href="forgot.html" class="forgot-link">¿Olvidaste tu contraseña?</a>
+        
+        <div class="separator"></div>
+        
+        <!-- El botón verde visualmente separado -->
+        <a href="signup.html" class="btn btn-success">Crear cuenta nueva</a>
+      
+      </div>
+      
+      <div style="margin-top: 20px; font-size: 13px; color: #666; text-align: center;">
+        <p><strong>KeiMag</strong> para ti y tu empresa</p>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -34,12 +67,16 @@
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      msg.textContent = '';
+      msg.textContent = 'Verificando...';
+      msg.style.color = '#606770';
 
       const data = Object.fromEntries(new FormData(form).entries());
 
       try {
-        const res = await fetch(window.BACKEND_URL + '/api/login', {
+        // Asegúrate que window.BACKEND_URL esté definido en config.js, sino usa fallback
+        const apiUrl = (window.BACKEND_URL || 'http://localhost:3000') + '/api/login';
+        
+        const res = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
@@ -49,32 +86,36 @@
 
         if (res.ok) {
           msg.style.color = 'green';
-          msg.textContent = 'Login exitoso';
+          msg.textContent = '¡Bienvenido a Apolo!';
 
-          // Guarda sesión en el navegador
+          // Guardar sesión
           localStorage.setItem('token', body.token);
           localStorage.setItem('usuarioId', body.usuarioId);
           localStorage.setItem('rolId', body.rolId);
 
-          // Redirige según rol
-          if (body.rolId === 1) {
-            localStorage.setItem('medicoId', body.medicoId);
-            window.location.href = '../pages/dashboard_medico.html';
-          } else {
-            localStorage.setItem('pacienteId', body.pacienteId);
-            localStorage.setItem('nombreUsuario', body.nombreUsuario);
-            window.location.href = '../pages/dashboard_paciente.html';
-          }
+          // Redirección basada en rol (Medico=1, Paciente=2)
+          setTimeout(() => {
+            if (body.rolId === 1) {
+              localStorage.setItem('medicoId', body.medicoId);
+              window.location.href = '../pages/dashboard_medico.html';
+            } else {
+              localStorage.setItem('pacienteId', body.pacienteId);
+              localStorage.setItem('nombreUsuario', body.nombreUsuario || 'Usuario');
+              window.location.href = '../pages/dashboard_paciente.html';
+            }
+          }, 500); // Pequeña pausa para ver el mensaje de éxito
+
         } else {
-          msg.style.color = 'crimson';
-          msg.textContent = body.error || 'Credenciales inválidas';
+          msg.style.color = '#dc2626'; // Rojo error
+          msg.textContent = body.error || 'Correo o contraseña incorrectos.';
         }
 
       } catch (err) {
-        msg.style.color = 'crimson';
-        msg.textContent = 'Error de red';
+        console.error(err);
+        msg.style.color = '#dc2626';
+        msg.textContent = 'No se pudo conectar con el servidor APOLO.';
       }
     });
-</script>
+  </script>
 </body>
 </html>

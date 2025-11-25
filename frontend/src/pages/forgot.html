@@ -2,36 +2,73 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Restablecer contraseña</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Restablecer contraseña - APOLO</title>
   <link rel="stylesheet" href="../css/styles.css">
-  <!-- Ajustado según la imagen: carpeta pages y scripts son hermanas -->
   <script src="../scripts/config.js"></script>
 </head>
 <body>
-  <div class="card">
-    <h1>Restablecer contraseña</h1>
-    <p class="small">Ingresa tu correo y la nueva contraseña.</p>
+
+  <!-- Contenedor centrado para la tarjeta -->
+  <div style="width: 100%; max-width: 500px;">
     
-    <form id="forgotForm">
-      <label>Email
-        <input type="email" name="email" required placeholder="ejemplo@correo.com">
-      </label>
-      
-      <label>Nueva Contraseña
-        <input type="password" name="password" required placeholder="********">
-      </label>
+    <!-- Título de la marca pequeño arriba (opcional, para mantener identidad) -->
+    <h1 style="text-align: center; color: var(--primary); margin-bottom: 20px;">APOLO</h1>
 
-      <label>Confirmar Contraseña
-        <input type="password" name="confirm" required placeholder="********">
-      </label>
+    <div class="card">
+      <h2 style="margin-top: 0; font-size: 24px;">Restablecer contraseña</h2>
+      <p style="color: var(--text-muted); margin-bottom: 20px; line-height: 1.4;">
+        Ingresa tu correo electrónico asociado y define tu nueva contraseña para recuperar el acceso.
+      </p>
       
-      <button type="submit">Cambiar contraseña</button>
-    </form>
+      <!-- Mensaje de estado -->
+      <div class="msg" id="msg"></div>
 
-    <div class="msg" id="msg"></div>
-    <div class="help">
-        <a href="signup.html">Crear cuenta</a> • <a href="login.html">Iniciar sesión</a>
+      <form id="forgotForm">
+        
+        <div class="form-group">
+          <input 
+            type="email" 
+            name="email" 
+            required 
+            placeholder="Correo electrónico" 
+            aria-label="Correo electrónico">
+        </div>
+        
+        <div class="form-group">
+          <input 
+            type="password" 
+            name="password" 
+            required 
+            placeholder="Nueva contraseña" 
+            aria-label="Nueva contraseña">
+        </div>
+
+        <div class="form-group">
+          <input 
+            type="password" 
+            name="confirm" 
+            required 
+            placeholder="Confirmar nueva contraseña" 
+            aria-label="Confirmar nueva contraseña">
+        </div>
+        
+        <div class="form-group" style="margin-top: 20px;">
+          <button type="submit" class="btn btn-primary">Cambiar contraseña</button>
+        </div>
+
+      </form>
+
+      <div class="separator"></div>
+
+      <!-- Botones de navegación secundarios -->
+      <div style="display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
+        <a href="login.html" 
+           style="text-decoration: none; color: var(--text-main); padding: 8px 16px; background: #e4e6eb; border-radius: 6px; font-weight: 600; font-size: 15px;">
+           Cancelar
+        </a>
+      </div>
+
     </div>
   </div>
 
@@ -42,19 +79,28 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       msg.textContent = 'Procesando...';
-      msg.style.color = '#666';
+      msg.style.color = '#606770';
       
       const data = Object.fromEntries(new FormData(form).entries());
 
-      // Validación simple en frontend antes de enviar
+      // 1. Validación en Frontend: Contraseñas coinciden
       if(data.password !== data.confirm) {
-          msg.textContent = 'Las contraseñas no coinciden';
-          msg.style.color = 'crimson';
+          msg.textContent = 'Las contraseñas no coinciden.';
+          msg.style.color = '#dc2626'; // Color rojo definido en CSS
+          return;
+      }
+
+      // 2. Validación de longitud mínima (opcional pero recomendada)
+      if(data.password.length < 6) {
+          msg.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+          msg.style.color = '#dc2626';
           return;
       }
 
       try {
-        const res = await fetch((window.BACKEND_URL || 'http://localhost:3000') + '/api/forgot', {
+        const apiUrl = (window.BACKEND_URL || 'http://localhost:3000') + '/api/forgot';
+        
+        const res = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
@@ -63,23 +109,26 @@
         const body = await res.json();
 
         if (res.ok) {
-          msg.textContent = body.message || 'Contraseña cambiada con éxito';
-          msg.style.color = 'green';
+          msg.textContent = body.message || 'Contraseña cambiada con éxito.';
+          msg.style.color = '#42b72a'; // Verde éxito
           
-          // Deshabilitar el formulario para evitar doble envío
+          // Deshabilitar formulario
           form.reset();
           Array.from(form.elements).forEach(el => el.disabled = true);
 
-          // Esperar 1.5s y redirigir al login
-          setTimeout(() => location.href = 'login.html', 1500);
+          // Redirigir
+          setTimeout(() => {
+             msg.textContent = 'Redirigiendo al inicio de sesión...';
+             location.href = 'login.html';
+          }, 2000);
         } else {
-          msg.textContent = body.error || 'Error al cambiar la contraseña';
-          msg.style.color = 'crimson';
+          msg.textContent = body.error || 'Error al cambiar la contraseña.';
+          msg.style.color = '#dc2626';
         }
       } catch (err) {
         console.error(err);
-        msg.textContent = 'Error de conexión con el servidor';
-        msg.style.color = 'crimson';
+        msg.textContent = 'Error de conexión con el servidor.';
+        msg.style.color = '#dc2626';
       }
     });
   </script>
