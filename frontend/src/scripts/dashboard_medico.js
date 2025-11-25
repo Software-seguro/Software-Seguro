@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!currentMedicoId) {
         alert('Acceso denegado. Debes ser médico.');
-        window.location.href = '../login.html';
+        window.location.replace('../pages/login.html');
         return;
     }
 
@@ -218,14 +218,17 @@ async function guardarConsulta(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
-    const id = data.id; // Leemos el campo oculto
+    const id = data.id || data.editConsultaId || document.getElementById('editConsultaId')?.value || ''; // Leemos el campo oculto (soporta varios nombres)
 
-    // Agregamos IDs necesarios
     const payload = {
         ...data,
-        pacienteId: currentPacienteId,
-        medicoId: currentMedicoId
+        pacienteId: parseInt(currentPacienteId),
+        medicoId: parseInt(currentMedicoId)
     };
+
+    // Si hay ID usamos PUT (Editar), si no POST (Crear)
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `${API_URL}/consultas/${id}` : `${API_URL}/consultas`;
 
     try {
         const res = await fetch(url, {
@@ -235,25 +238,70 @@ async function guardarConsulta(e) {
         });
 
         if(res.ok) {
-            alert('Consulta registrada');
+            alert(id ? 'Consulta actualizada' : 'Consulta registrada');
             cerrarModales();
-            renderHistoria(currentPacienteId); // Recargar
+            renderHistoria(currentPacienteId); // Recargar lista
         } else {
             alert('Error al guardar');
         }
     } catch (err) { console.error(err); }
 }
 
+async function eliminarConsulta(id) {
+    if(!confirm("¿Estás seguro de eliminar esta consulta? Se borrarán también sus exámenes asociados.")) return;
+    
+    try {
+        const res = await fetch(`${API_URL}/consultas/${id}`, { method: 'DELETE' });
+        if(res.ok) {
+            renderHistoria(currentPacienteId);
+        } else {
+            alert('Error al eliminar');
+        }
+    } catch (err) { console.error(err); }
+}
+
+// 2. GESTIÓN DE EXÁMENES
+
+function abrirModalExamen(consultaId) {
+    document.getElementById('formExamen').reset();
+    document.getElementById('inputConsultaIdExamen').value = consultaId;
+    document.getElementById('editExamenId').value = ""; // Vaciamos ID
+    document.querySelector('#modalExamen h2').textContent = "Solicitar/Subir Examen";
+    document.getElementById('modalExamen').classList.add('active');
+}
+
+function editarExamen(id) {
+    const examen = listaExamenes.find(e => e.ExamenID === id);
+    if(!examen) return;
+
+    const form = document.getElementById('formExamen');
+    form.tipo.value = examen.TipoExamen;
+    form.observaciones.value = examen.ObservacionesResultados || '';
+    
+    // Mantenemos el ID de consulta original y el ID del examen
+    document.getElementById('inputConsultaIdExamen').value = examen.ConsultaID;
+    document.getElementById('editExamenId').value = examen.ExamenID;
+
+    document.querySelector('#modalExamen h2').textContent = "Editar Examen";
+    document.getElementById('modalExamen').classList.add('active');
+}
+
 async function guardarExamen(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
+    const id = data.id || data.editExamenId || document.getElementById('editExamenId')?.value || '';
+
+    const consultaIdValue = data.consultaId || data.inputConsultaIdExamen || document.getElementById('inputConsultaIdExamen')?.value || '';
 
     const payload = {
         ...data,
-        pacienteId: currentPacienteId,
-        // consultaId viene del input hidden
+        pacienteId: parseInt(currentPacienteId),
+        consultaId: parseInt(consultaIdValue)
     };
+
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `${API_URL}/examenes/${id}` : `${API_URL}/examenes`;
 
     try {
         const res = await fetch(url, {
@@ -263,7 +311,7 @@ async function guardarExamen(e) {
         });
 
         if(res.ok) {
-            alert('Examen agregado');
+            alert(id ? 'Examen actualizado' : 'Examen agregado');
             cerrarModales();
             renderHistoria(currentPacienteId);
         } else {
@@ -272,7 +320,16 @@ async function guardarExamen(e) {
     } catch (err) { console.error(err); }
 }
 
+async function eliminarExamen(id) {
+    if(!confirm("¿Eliminar este examen?")) return;
+    try {
+        const res = await fetch(`${API_URL}/examenes/${id}`, { method: 'DELETE' });
+        if(res.ok) renderHistoria(currentPacienteId);
+        else alert('Error al eliminar');
+    } catch (err) { console.error(err); }
+}
+
 function logout() {
     sessionStorage.clear();
-     window.location.href = '../pages/login.html';
+    window.location.href = '../pages/login.html'; 
 }
