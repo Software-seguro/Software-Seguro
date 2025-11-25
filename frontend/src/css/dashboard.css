@@ -265,3 +265,32 @@ header {
     font-family: inherit; 
     box-sizing: border-box;
 }
+
+/* Botones de acciones CRUD */
+.btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-right: 5px;
+}
+.btn-warning:hover { background-color: #e0a800; }
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+.btn-danger:hover { background-color: #c82333; }
+
+/* Alinear botones a la derecha */
+.actions-cell {
+    text-align: right;
+}

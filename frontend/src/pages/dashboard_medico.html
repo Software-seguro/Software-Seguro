@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Médico - Gestión Clínica</title>
-    <link rel="stylesheet" href="../css/dashboard_paciente.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
@@ -80,6 +80,8 @@
             <span class="close-modal" onclick="cerrarModales()">&times;</span>
             <h2>Registrar Consulta</h2>
             <form id="formConsulta">
+                <input type="hidden" name="id" id="editConsultaId">
+
                 <div class="form-group">
                     <label>Motivo de Consulta</label>
                     <input type="text" name="motivo" required placeholder="Ej. Dolor abdominal">
@@ -107,7 +109,10 @@
             <h2>Solicitar/Subir Examen</h2>
             <p style="font-size:0.8rem; color:#666">Vinculado a la consulta seleccionada</p>
             <form id="formExamen">
+                <input type="hidden" name="id" id="editExamenId">
+                
                 <input type="hidden" name="consultaId" id="inputConsultaIdExamen">
+
                 <div class="form-group">
                     <label>Tipo de Examen</label>
                     <select name="tipo" required>

@@ -557,6 +557,80 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// ==========================================
+// RUTAS CRUD ADICIONALES (UPDATE / DELETE)
+// ==========================================
+
+// --- CONSULTAS ---
+
+// PUT (Actualizar) Consulta
+app.put('/api/consultas/:id', async (req, res) => {
+    const id = req.params.id;
+    const { motivo, diagnostico, tratamiento, sintomas } = req.body;
+    try {
+        if (!pool) return res.status(503).json({ error: "DB no conectada" });
+        await pool.request()
+            .input('ID', sql.Int, id)
+            .input('Motivo', sql.NVarChar, motivo)
+            .input('Diagnostico', sql.NVarChar, diagnostico)
+            .input('Tratamiento', sql.NVarChar, tratamiento)
+            .input('Sintomas', sql.NVarChar, sintomas || '')
+            .query(`UPDATE Consultas SET MotivoConsulta=@Motivo, Diagnostico=@Diagnostico, Tratamiento=@Tratamiento, Sintomas=@Sintomas WHERE ConsultaID=@ID`);
+        res.json({ ok: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// DELETE (Eliminar) Consulta
+app.delete('/api/consultas/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        if (!pool) return res.status(503).json({ error: "DB no conectada" });
+        // Nota: Si hay exámenes ligados, esto podría fallar por Foreign Key. 
+        // Lo ideal es borrar exámenes primero o usar CASCADE en SQL.
+        // Aquí intentaremos borrar primero los exámenes hijos manualmente para asegurar éxito:
+        const tx = new sql.Transaction(pool);
+        await tx.begin();
+        try {
+            const reqTx = new sql.Request(tx);
+            await reqTx.input('ID', sql.Int, id).query('DELETE FROM Examenes WHERE ConsultaID = @ID');
+            await reqTx.query('DELETE FROM Consultas WHERE ConsultaID = @ID');
+            await tx.commit();
+            res.json({ ok: true });
+        } catch (err) {
+            await tx.rollback();
+            throw err;
+        }
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- EXÁMENES ---
+
+// PUT (Actualizar) Examen
+app.put('/api/examenes/:id', async (req, res) => {
+    const id = req.params.id;
+    const { tipo, observaciones } = req.body;
+    try {
+        if (!pool) return res.status(503).json({ error: "DB no conectada" });
+        await pool.request()
+            .input('ID', sql.Int, id)
+            .input('Tipo', sql.NVarChar, tipo)
+            .input('Obs', sql.NVarChar, observaciones || '')
+            .query(`UPDATE Examenes SET TipoExamen=@Tipo, ObservacionesResultados=@Obs WHERE ExamenID=@ID`);
+        res.json({ ok: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// DELETE (Eliminar) Examen
+app.delete('/api/examenes/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        if (!pool) return res.status(503).json({ error: "DB no conectada" });
+        await pool.request()
+            .input('ID', sql.Int, id)
+            .query('DELETE FROM Examenes WHERE ExamenID = @ID');
+        res.json({ ok: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Backend API listening on ${PORT}`));
