@@ -1,9 +1,32 @@
 const API_URL = 'http://localhost:3000/api'; // Ajusta si tu puerto cambia
 
+// --- FUNCIÓN DE SEGURIDAD MEJORADA ---
+function verificarSesion() {
+    const pacienteId = sessionStorage.getItem('pacienteId');
+    
+    if (!pacienteId) {
+        // NO MOSTRAR NADA, REDIRIGIR INMEDIATAMENTE
+        // Quitamos el alert() porque detiene la ejecución y deja ver el fondo
+        window.location.replace('../pages/login.html'); 
+        return false;
+    }
+    
+    // SI HAY SESIÓN, MOSTRAMOS LA PÁGINA
+    document.body.style.display = 'block'; 
+    return true;
+}
+
+// 1. Esto protege contra el botón "Atrás" (BFCache)
+window.addEventListener('pageshow', (event) => {
+    // Si el usuario vuelve atrás y no tiene sesión, verificarSesion lo saca de ahí
+    verificarSesion();
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Verificar sesión
     const pacienteId = sessionStorage.getItem('pacienteId');
     const nombre = sessionStorage.getItem('nombreUsuario');
+    if (!verificarSesion()) return;
 
     if (!pacienteId) {
         alert('No has iniciado sesión.');

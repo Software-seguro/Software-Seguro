@@ -4,10 +4,12 @@ const sql = require('mssql');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const WebSocket = require('ws');
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Configuración de conexión a SQL Server (ajustar con variables de entorno)
 const dbConfig = {

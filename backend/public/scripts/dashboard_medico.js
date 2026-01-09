@@ -8,6 +8,23 @@ let currentPacienteId = null;
 let listaConsultas = [];
 let listaExamenes = [];
 
+// --- NUEVA FUNCIÓN DE SEGURIDAD ---
+function verificarSesionMedico() {
+    const medicoId = sessionStorage.getItem('medicoId');
+    if (!medicoId) {
+        document.body.style.display = 'none'; // Ocultar visualmente todo
+        window.location.replace('../pages/login.html');
+        return false;
+    }
+    document.body.style.display = 'block'; // Asegurar que se vea si todo está bien
+    return true;
+}
+
+// Detectar botón "Atrás"
+window.addEventListener('pageshow', (event) => {
+    verificarSesionMedico();
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Verificar Sesión de MÉDICO
     const token = sessionStorage.getItem('token');
