@@ -79,4 +79,36 @@ const login = async (req, res) => {
     }
 };
 
-module.exports = { register, login };
+const forgotPassword = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // 1. Validar que el usuario exista
+        const user = await userRepo.findUserByEmail(email);
+        if (!user) {
+            // Por seguridad, a veces no se dice si el correo existe o no, 
+            // pero para este proyecto seremos explícitos.
+            return res.status(404).json({ message: 'El correo no está registrado.' });
+        }
+
+        // 2. Encriptar la nueva contraseña
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(password, salt);
+
+        // 3. Actualizar en BD
+        const updated = await userRepo.updatePassword(email, hash);
+
+        if (updated) {
+            // TODO: Log de auditoría "Cambio de contraseña"
+            res.json({ message: 'Contraseña actualizada correctamente.' });
+        } else {
+            res.status(400).json({ message: 'No se pudo actualizar la contraseña.' });
+        }
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error en el servidor' });
+    }
+};
+
+module.exports = { register, login, forgotPassword };

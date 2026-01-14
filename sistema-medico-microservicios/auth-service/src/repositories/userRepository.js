@@ -22,4 +22,18 @@ const findUserByEmail = async (email) => {
     return result.recordset[0]; // Retorna undefined si no existe
 };
 
-module.exports = { createUser, findUserByEmail };
+const updatePassword = async (email, newPasswordHash) => {
+    const pool = await getConnection();
+    const result = await pool.request()
+        .input('Email', sql.NVarChar, email)
+        .input('PasswordHash', sql.NVarChar, newPasswordHash)
+        .query(`
+            UPDATE Usuarios 
+            SET PasswordHash = @PasswordHash 
+            WHERE Email = @Email
+        `);
+    // result.rowsAffected[0] nos dice cuántas filas cambió. Si es 0, el email no existe.
+    return result.rowsAffected[0] > 0;
+};
+
+module.exports = { createUser, findUserByEmail, updatePassword };
