@@ -1,1 +1,40 @@
-node_modules
+# --- Dependencias (Lo más importante) ---
+node_modules/
+package-lock.json
+# (Opcional: Si prefieres subir el package-lock para versiones exactas, borra la línea de arriba)
+
+# --- Variables de Entorno y Secretos (SEGURIDAD CRÍTICA) ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- Archivos de Build y Distribución ---
+dist/
+build/
+coverage/
+
+# --- Logs y archivos de depuración ---
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Archivos del Sistema Operativo (Basura) ---
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- IDEs y Editores ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Varios ---
+*.bak
+*.tmp

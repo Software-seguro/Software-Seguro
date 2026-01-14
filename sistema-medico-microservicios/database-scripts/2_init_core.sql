@@ -1,0 +1,37 @@
+CREATE DATABASE DB_Core;
+GO
+USE DB_Core;
+GO
+
+CREATE TABLE Medicos (
+    MedicoID INT PRIMARY KEY IDENTITY(1,1),
+    UsuarioID INT NOT NULL UNIQUE, -- Referencia lógica a DB_Auth
+    Nombre NVARCHAR(50) NOT NULL,
+    Apellido NVARCHAR(50) NOT NULL,
+    Especialidad NVARCHAR(100) NOT NULL,
+    NumeroLicencia NVARCHAR(50) NOT NULL UNIQUE,
+    Telefono NVARCHAR(20)
+);
+
+CREATE TABLE Pacientes (
+    PacienteID INT PRIMARY KEY IDENTITY(1,1),
+    UsuarioID INT NOT NULL UNIQUE, -- Referencia lógica a DB_Auth
+    MedicoID INT NOT NULL,         -- Relación interna en DB_Core (esta FK sí se mantiene)
+    Nombre NVARCHAR(50) NOT NULL,
+    Apellido NVARCHAR(50) NOT NULL,
+    FechaNacimiento DATE NOT NULL,
+    Identificacion NVARCHAR(20) NOT NULL UNIQUE,
+    TipoSangre NVARCHAR(5),
+    Direccion NVARCHAR(200),
+    TelefonoContacto NVARCHAR(20),
+    Alergias NVARCHAR(MAX),
+    CONSTRAINT FK_Pacientes_Medicos FOREIGN KEY (MedicoID) REFERENCES Medicos(MedicoID)
+);
+
+-- Datos semilla (IDs deben coincidir manualmente con los creados en Auth)
+INSERT INTO Medicos (UsuarioID, Nombre, Apellido, Especialidad, NumeroLicencia)
+VALUES (1, 'Juan', 'Perez', 'Cardiología', 'MED-998877');
+
+INSERT INTO Pacientes (UsuarioID, MedicoID, Nombre, Apellido, FechaNacimiento, Identificacion, TipoSangre)
+VALUES (2, 1, 'Ana', 'Garcia', '1990-05-15', '1122334455', 'O+');
+GO
