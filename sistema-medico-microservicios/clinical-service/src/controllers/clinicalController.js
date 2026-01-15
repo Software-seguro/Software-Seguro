@@ -22,6 +22,21 @@ const registerConsulta = async (req, res) => {
     }
 };
 
+
+const updateConsulta = async (req, res) => {
+    try {
+        await clinicalRepo.updateConsulta(req.params.id, req.body);
+        res.json({ message: 'Consulta actualizada' });
+    } catch (e) { res.status(500).json({ message: 'Error actualizando' }); }
+};
+
+const deleteConsulta = async (req, res) => {
+    try {
+        await clinicalRepo.deleteConsulta(req.params.id);
+        res.json({ message: 'Consulta eliminada' });
+    } catch (e) { res.status(500).json({ message: 'Error eliminando' }); }
+};
+
 // Obtener Historial (Consultas)
 const getHistoria = async (req, res) => {
     try {
@@ -32,6 +47,8 @@ const getHistoria = async (req, res) => {
         res.status(500).json({ message: 'Error obteniendo historia' });
     }
 };
+
+
 
 // Crear Examen
 const registerExamen = async (req, res) => {
@@ -55,4 +72,22 @@ const getExamenes = async (req, res) => {
     }
 };
 
-module.exports = { registerConsulta, getHistoria, registerExamen, getExamenes };
+const updateExamen = async (req, res) => {
+    try {
+        await clinicalRepo.updateExamen(req.params.id, req.body);
+        res.json({ message: 'Examen actualizado' });
+    } catch (e) { res.status(500).json({ message: 'Error actualizando' }); }
+};
+
+const deleteExamen = async (req, res) => {
+    try {
+        await clinicalRepo.deleteExamen(req.params.id);
+        res.json({ message: 'Examen eliminado' });
+    } catch (e) { res.status(500).json({ message: 'Error eliminando' }); }
+};
+
+// No olvides exportarlos
+module.exports = { 
+    registerConsulta, getHistoria, updateConsulta, deleteConsulta,
+    registerExamen, getExamenes, updateExamen, deleteExamen 
+};

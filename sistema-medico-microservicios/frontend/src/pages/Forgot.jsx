@@ -1,6 +1,8 @@
+// frontend/src/pages/Forgot.jsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom'; // Para navegar sin recargar
 import { API_URL } from '../config';
+import '../css/styles.css';
 
 function Forgot() {
   const [msg, setMsg] = useState('');
@@ -63,44 +65,46 @@ function Forgot() {
   };
 
   return (
-    <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}>
-        
-        <h1 style={{ textAlign: 'center', color: 'var(--primary)', marginBottom: '20px' }}>APOLO</h1>
+    <div className="auth-wrapper">
+        <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}>
+            
+            <h1 style={{ textAlign: 'center', color: 'var(--primary)', marginBottom: '20px' }}>APOLO</h1>
 
-        <div className="card">
-            <h2 style={{ marginTop: 0, fontSize: '24px' }}>Restablecer contraseña</h2>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '20px', lineHeight: 1.4 }}>
-                Ingresa tu correo electrónico asociado y define tu nueva contraseña para recuperar el acceso.
-            </p>
+            <div className="card">
+                <h2 style={{ marginTop: 0, fontSize: '24px' }}>Restablecer contraseña</h2>
+                <p style={{ color: 'var(--text-muted)', marginBottom: '20px', lineHeight: 1.4 }}>
+                    Ingresa tu correo electrónico asociado y define tu nueva contraseña para recuperar el acceso.
+                </p>
 
-            <div className="msg" style={{ color: msgColor, fontWeight: 'bold' }}>{msg}</div>
+                <div className="msg" style={{ color: msgColor, fontWeight: 'bold' }}>{msg}</div>
 
-            <form onSubmit={handleSubmit}>
-                <fieldset disabled={isDisabled} style={{ border: 'none', padding: 0, margin: 0 }}>
-                    <div className="form-group">
-                        <input type="email" name="email" required placeholder="Correo electrónico" />
-                    </div>
+                <form onSubmit={handleSubmit}>
+                    <fieldset disabled={isDisabled} style={{ border: 'none', padding: 0, margin: 0 }}>
+                        <div className="form-group">
+                            <input type="email" name="email" required placeholder="Correo electrónico" />
+                        </div>
 
-                    <div className="form-group">
-                        <input type="password" name="password" required placeholder="Nueva contraseña" />
-                    </div>
+                        <div className="form-group">
+                            <input type="password" name="password" required placeholder="Nueva contraseña" />
+                        </div>
 
-                    <div className="form-group">
-                        <input type="password" name="confirm" required placeholder="Confirmar nueva contraseña" />
-                    </div>
+                        <div className="form-group">
+                            <input type="password" name="confirm" required placeholder="Confirmar nueva contraseña" />
+                        </div>
 
-                    <div className="form-group" style={{ marginTop: '20px' }}>
-                        <button type="submit" className="btn btn-primary">Cambiar contraseña</button>
-                    </div>
-                </fieldset>
-            </form>
+                        <div className="form-group" style={{ marginTop: '20px' }}>
+                            <button type="submit" className="btn btn-primary">Cambiar contraseña</button>
+                        </div>
+                    </fieldset>
+                </form>
 
-            <div className="separator"></div>
+                <div className="separator"></div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', alignItems: 'center' }}>
-                <Link to="/" style={{ textDecoration: 'none', color: 'var(--text-main)', padding: '8px 16px', background: '#e4e6eb', borderRadius: '6px', fontWeight: 600, fontSize: '15px' }}>
-                    Cancelar
-                </Link>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', alignItems: 'center' }}>
+                    <Link to="/" style={{ textDecoration: 'none', color: 'var(--text-main)', padding: '8px 16px', background: '#e4e6eb', borderRadius: '6px', fontWeight: 600, fontSize: '15px' }}>
+                        Cancelar
+                    </Link>
+                </div>
             </div>
         </div>
     </div>

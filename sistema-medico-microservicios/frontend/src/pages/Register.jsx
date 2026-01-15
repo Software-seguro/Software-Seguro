@@ -1,6 +1,8 @@
+// frontend/src/pages/Register.jsx
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { API_URL } from '../config';
+import '../css/styles.css';
 
 function Register() {
   const [msg, setMsg] = useState('');
@@ -131,73 +133,75 @@ function Register() {
   };
 
   return (
-    <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', padding: '20px' }}>
-      <h1 style={{ textAlign: 'center', color: 'var(--primary)', marginBottom: '20px' }}>APOLO</h1>
+    <div className="auth-wrapper">
+      <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', padding: '20px' }}>
+        <h1 style={{ textAlign: 'center', color: 'var(--primary)', marginBottom: '20px' }}>APOLO</h1>
 
-      <div className="card">
-        <h2 style={{ marginTop: 0, marginBottom: '5px' }}>Crear cuenta nueva</h2>
-        <p style={{ margin: '0 0 20px 0', color: '#606770' }}>Es rápido y fácil.</p>
-        <div className="separator" style={{ marginTop: 0 }}></div>
-        
-        <div className="msg" style={{ color: msgColor, fontWeight: 'bold' }}>{msg}</div>
+        <div className="card">
+          <h2 style={{ marginTop: 0, marginBottom: '5px' }}>Crear cuenta nueva</h2>
+          <p style={{ margin: '0 0 20px 0', color: '#606770' }}>Es rápido y fácil.</p>
+          <div className="separator" style={{ marginTop: 0 }}></div>
+          
+          <div className="msg" style={{ color: msgColor, fontWeight: 'bold' }}>{msg}</div>
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
-            <input type="text" name="nombre" placeholder="Nombre" required className="form-control" style={{width: '100%'}} />
-            <input type="text" name="apellido" placeholder="Apellido" required className="form-control" style={{width: '100%'}} />
-          </div>
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+              <input type="text" name="nombre" placeholder="Nombre" required className="form-control" style={{width: '100%'}} />
+              <input type="text" name="apellido" placeholder="Apellido" required className="form-control" style={{width: '100%'}} />
+            </div>
 
-          <div className="form-group">
-            <input type="email" name="email" placeholder="Correo electrónico" required />
-          </div>
+            <div className="form-group">
+              <input type="email" name="email" placeholder="Correo electrónico" required />
+            </div>
 
-          <div className="form-group">
-            <input type="password" name="password" placeholder="Contraseña nueva" required minLength="6" />
-          </div>
+            <div className="form-group">
+              <input type="password" name="password" placeholder="Contraseña nueva" required minLength="6" />
+            </div>
 
-          {/* Campo Fecha Nacimiento para Pacientes */}
-          {!isMedico && (
-             <div className="form-group">
-                <label style={{fontSize: '12px', color: '#666'}}>Fecha de Nacimiento</label>
-                <input type="date" name="fechaNacimiento" required />
-             </div>
-          )}
-
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
-             <div className="form-group" style={{flex: 1}}>
-               <input type="text" name="identificacion" placeholder="Cédula/DNI" required style={{width: '100%'}} />
-             </div>
-             <div className="form-group" style={{flex: 1}}>
-               <input type="tel" name="telefono" placeholder="Teléfono" style={{width: '100%'}} />
-             </div>
-          </div>
-
-          <div className="form-group">
-            <label style={{ fontSize: '12px', color: '#606770', display: 'block' }}>¿Quién eres?</label>
-            <select name="role" onChange={handleRoleChange} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}>
-              <option value="paciente">Paciente</option>
-              <option value="medico">Médico / Especialista</option>
-            </select>
-          </div>
-
-          {/* Renderizado Condicional: Solo se muestra si es Médico */}
-          {isMedico && (
-            <div style={{ background: '#f7f8fa', padding: '15px', borderRadius: '8px', marginBottom: '15px', border: '1px dashed #ccc' }}>
-              <p style={{ margin: '0 0 10px 0', fontSize: '13px', fontWeight: 'bold', color: 'var(--primary)' }}>Datos Profesionales</p>
+            {/* Campo Fecha Nacimiento para Pacientes */}
+            {!isMedico && (
               <div className="form-group">
-                <input type="text" name="especialidad" placeholder="Especialidad" />
+                  <label style={{fontSize: '12px', color: '#666'}}>Fecha de Nacimiento</label>
+                  <input type="date" name="fechaNacimiento" required />
               </div>
-              <div className="form-group">
-                <input type="text" name="numeroLicencia" placeholder="Número de Licencia" />
+            )}
+
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+              <div className="form-group" style={{flex: 1}}>
+                <input type="text" name="identificacion" placeholder="Cédula/DNI" required style={{width: '100%'}} />
+              </div>
+              <div className="form-group" style={{flex: 1}}>
+                <input type="tel" name="telefono" placeholder="Teléfono" style={{width: '100%'}} />
               </div>
             </div>
-          )}
 
-          <button type="submit" className="btn btn-success" style={{ width: '100%', marginTop: '10px' }}>Registrarte</button>
-        </form>
+            <div className="form-group">
+              <label style={{ fontSize: '12px', color: '#606770', display: 'block' }}>¿Quién eres?</label>
+              <select name="role" onChange={handleRoleChange} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                <option value="paciente">Paciente</option>
+                <option value="medico">Médico / Especialista</option>
+              </select>
+            </div>
 
-        <div style={{ marginTop: '20px', textAlign: 'center' }}>
-          <Link to="/" style={{ textDecoration: 'none', color: 'var(--primary)' }}>¿Ya tienes una cuenta?</Link>
+            {/* Renderizado Condicional: Solo se muestra si es Médico */}
+            {isMedico && (
+              <div style={{ background: '#f7f8fa', padding: '15px', borderRadius: '8px', marginBottom: '15px', border: '1px dashed #ccc' }}>
+                <p style={{ margin: '0 0 10px 0', fontSize: '13px', fontWeight: 'bold', color: 'var(--primary)' }}>Datos Profesionales</p>
+                <div className="form-group">
+                  <input type="text" name="especialidad" placeholder="Especialidad" />
+                </div>
+                <div className="form-group">
+                  <input type="text" name="numeroLicencia" placeholder="Número de Licencia" />
+                </div>
+              </div>
+            )}
+
+            <button type="submit" className="btn btn-success" style={{ width: '100%', marginTop: '10px' }}>Registrarte</button>
+          </form>
+
+          <div style={{ marginTop: '20px', textAlign: 'center' }}>
+            <Link to="/" style={{ textDecoration: 'none', color: 'var(--primary)' }}>¿Ya tienes una cuenta?</Link>
+          </div>
         </div>
       </div>
     </div>

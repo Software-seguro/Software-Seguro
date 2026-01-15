@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom'; // Link reemplaza a <a href>
 import { API_URL } from '../config';
+import '../css/styles.css';
 
 function Login() {
   const [msg, setMsg] = useState('');
@@ -58,35 +59,37 @@ function Login() {
   };
 
   return (
-    <div className="main-container">
-      {/* Branding */}
-      <div className="brand-section">
-        <h1>APOLO</h1>
-        <p>Gestiona tu historial clínico, consultas y conéctate con especialistas de forma segura.</p>
-      </div>
-
-      {/* Login Card */}
-      <div className="login-section">
-        <div className="card">
-          <div className="msg" style={{ color: msgColor }}>{msg}</div>
-
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <input type="email" name="email" placeholder="Correo electrónico o usuario" required autoFocus />
-            </div>
-            <div className="form-group">
-              <input type="password" name="password" placeholder="Contraseña" required />
-            </div>
-            <button type="submit" className="btn btn-primary">Iniciar sesión</button>
-          </form>
-
-          <Link to="/forgot" className="forgot-link">¿Olvidaste tu contraseña?</Link>
-          <div className="separator"></div>
-          <Link to="/register" className="btn btn-success">Crear cuenta nueva</Link>
+    <div className="auth-wrapper">
+      <div className="main-container">
+        {/* Branding */}
+        <div className="brand-section">
+          <h1>APOLO</h1>
+          <p>Gestiona tu historial clínico, consultas y conéctate con especialistas de forma segura.</p>
         </div>
-        
-        <div style={{ marginTop: '20px', fontSize: '13px', color: '#666', textAlign: 'center' }}>
-          <p><strong>KeiMag</strong> para ti y tu empresa</p>
+
+        {/* Login Card */}
+        <div className="login-section">
+          <div className="card">
+            <div className="msg" style={{ color: msgColor }}>{msg}</div>
+
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <input type="email" name="email" placeholder="Correo electrónico o usuario" required autoFocus />
+              </div>
+              <div className="form-group">
+                <input type="password" name="password" placeholder="Contraseña" required />
+              </div>
+              <button type="submit" className="btn btn-primary">Iniciar sesión</button>
+            </form>
+
+            <Link to="/forgot" className="forgot-link">¿Olvidaste tu contraseña?</Link>
+            <div className="separator"></div>
+            <Link to="/register" className="btn btn-success">Crear cuenta nueva</Link>
+          </div>
+          
+          <div style={{ marginTop: '20px', fontSize: '13px', color: '#666', textAlign: 'center' }}>
+            <p><strong>KeiMag</strong> para ti y tu empresa</p>
+          </div>
         </div>
       </div>
     </div>
