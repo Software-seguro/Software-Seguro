@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 
 // Creamos un servidor HTTP básico (necesario para montar WS)
 const server = http.createServer(app);
@@ -14,53 +15,56 @@ const server = http.createServer(app);
 // Creamos el servidor de WebSockets
 const wss = new WebSocket.Server({ server });
 
+
+app.get('/api/chat/historial/:u1/:u2', async (req, res) => {
+    try {
+        const { u1, u2 } = req.params;
+        console.log(`Petición de historial recibida: ${u1} y ${u2}`);
+        const mensajes = await chatRepo.getRecentMessages(u1, u2);
+        res.json(mensajes);
+    } catch (error) {
+        console.error("Error en ruta historial:", error);
+        res.status(500).json({ error: 'Error al obtener historial' });
+    }
+});
+
 // Lista de clientes conectados
-const clients = new Set();
+const clients = new Map(); 
 
-wss.on('connection', async (ws) => {
-    console.log('Cliente conectado al chat');
-    clients.add(ws);
+wss.on('connection', async (ws, req) => {
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const userId = parseInt(url.searchParams.get('userId'));
 
-    // 1. Al conectar, enviarle el historial de mensajes guardados
-    const history = await chatRepo.getRecentMessages();
-    history.forEach(msg => {
-        if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify(msg));
-        }
-    });
+    if (!userId || isNaN(userId)) {
+        ws.close();
+        return;
+    }
 
-    // 2. Escuchar mensajes nuevos de este cliente
+    clients.set(userId, ws);
+    console.log(`Usuario ${userId} conectado.`);
+
     ws.on('message', async (message) => {
         try {
-            // El mensaje viene como Buffer o String, lo parseamos
-            const parsedData = JSON.parse(message);
-            
-            // Agregamos timestamp
-            const msgToSend = {
-                ...parsedData,
-                timestamp: new Date().toLocaleTimeString()
+            const data = JSON.parse(message);
+            const msgToSave = {
+                userId: userId,
+                receptorId: data.receptorId,
+                text: data.text,
+                username: data.username,
+                rol: data.rol
             };
-
-            // A. Guardar en Base de Datos (Asíncrono, no bloqueamos el envío)
-            chatRepo.saveMessage(msgToSend);
-
-            // B. Reenviar (Broadcast) a TODOS los clientes conectados
-            clients.forEach(client => {
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify(msgToSend));
-                }
-            });
-
+            await chatRepo.saveMessage(msgToSave);
+            const targetSocket = clients.get(data.receptorId);
+            if (targetSocket && targetSocket.readyState === WebSocket.OPEN) {
+                targetSocket.send(JSON.stringify(msgToSave));
+            }
+            ws.send(JSON.stringify(msgToSave));
         } catch (err) {
             console.error('Error procesando mensaje:', err);
         }
     });
 
-    // 3. Manejar desconexión
-    ws.on('close', () => {
-        console.log('Cliente desconectado');
-        clients.delete(ws);
-    });
+    ws.on('close', () => clients.delete(userId));
 });
 
 const PORT = process.env.PORT || 3004;

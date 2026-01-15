@@ -45,4 +45,25 @@ const createPacienteProfile = async (req, res) => {
     }
 };
 
-module.exports = { createMedicoProfile, getMyPacientes, createPacienteProfile };
+const getMyProfile = async (req, res) => {
+    try {
+        // req.user.id es extraído automáticamente del Token por tu authMiddleware
+        const usuarioId = req.user.id; 
+        
+        // LLAMAMOS AL REPOSITORIO (Él se encarga de la base de datos)
+        const perfil = await profileRepo.getPacienteByUsuarioId(usuarioId);
+        
+        if (perfil) {
+            // Si existe el perfil, devolvemos el JSON al frontend
+            res.json(perfil);
+        } else {
+            // Si el ID del token no existe en la tabla Pacientes
+            res.status(404).json({ message: "Perfil de paciente no encontrado" });
+        }
+    } catch (error) {
+        console.error("Error en getMyProfile:", error);
+        res.status(500).json({ message: "Error interno del servidor al obtener el perfil" });
+    }
+};
+
+module.exports = { createMedicoProfile, getMyPacientes, createPacienteProfile, getMyProfile };

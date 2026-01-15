@@ -19,3 +19,14 @@ GO
 INSERT INTO Mensajes (UsuarioID, NombreUsuario, RolID, Contenido)
 VALUES (0, 'Sistema', 3, 'Bienvenido al chat médico seguro.');
 GO
+
+
+USE DB_Chat;
+GO
+
+-- 1. Agregar la columna ReceptorID
+ALTER TABLE Mensajes ADD ReceptorID INT NOT NULL DEFAULT 0;
+
+-- 2. Limpiar mensajes antiguos (opcional, para evitar conflictos de datos viejos)
+DELETE FROM Mensajes;
+GO

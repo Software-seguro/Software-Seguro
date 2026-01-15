@@ -190,3 +190,68 @@ header span { color: var(--text-muted); font-size: 13px; }
     font-family: inherit; font-size: 14px; outline: none;
 }
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); }
+
+/* Contenedor del Chat */
+.chat-layout {
+    display: flex;
+    height: calc(100vh - 150px);
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
+
+.chat-sidebar {
+    width: 250px;
+    border-right: 1px solid #eee;
+    overflow-y: auto;
+    background: #f9f9f9;
+}
+
+.patient-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.patient-item:hover, .patient-item.active {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #f0f2f5;
+}
+
+.message-bubble {
+    padding: 10px 15px;
+    border-radius: 18px;
+    max-width: 70%;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.message-bubble.incoming {
+    align-self: flex-start;
+    background: white;
+    border: 1px solid #ddd;
+}
+
+.message-bubble.outgoing {
+    align-self: flex-end;
+    background: var(--primary);
+    color: white;
+}

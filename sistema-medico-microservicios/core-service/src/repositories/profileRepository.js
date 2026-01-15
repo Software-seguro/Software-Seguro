@@ -23,16 +23,16 @@ const getPacientesByMedico = async (medicoUsuarioId) => {
     const medico = await pool.request()
         .input('UsuarioID', sql.Int, medicoUsuarioId)
         .query('SELECT MedicoID FROM Medicos WHERE UsuarioID = @UsuarioID');
-    
+
     if (medico.recordset.length === 0) return [];
-    
+
     const medicoId = medico.recordset[0].MedicoID;
 
     // Ahora buscamos sus pacientes
     const result = await pool.request()
         .input('MedicoID', sql.Int, medicoId)
         .query('SELECT * FROM Pacientes WHERE MedicoID = @MedicoID');
-    
+
     return result.recordset;
 };
 
@@ -53,4 +53,20 @@ const createPaciente = async (data) => {
     return result;
 };
 
-module.exports = { createMedico, getPacientesByMedico, createPaciente };
+const getPacienteByUsuarioId = async (usuarioId) => {
+    const pool = await getConnection();
+    const result = await pool.request()
+        .input('UsuarioID', sql.Int, usuarioId)
+        .query(`
+            SELECT 
+                p.*, 
+                m.UsuarioID as MedicoUsuarioID, 
+                m.Nombre as NombreMedico 
+            FROM Pacientes p    
+            JOIN Medicos m ON p.MedicoID = m.MedicoID
+            WHERE p.UsuarioID = @UsuarioID
+        `);
+    return result.recordset[0]; // Retorna el primer resultado o undefined
+};
+
+module.exports = { createMedico, getPacientesByMedico, createPaciente, getPacienteByUsuarioId };

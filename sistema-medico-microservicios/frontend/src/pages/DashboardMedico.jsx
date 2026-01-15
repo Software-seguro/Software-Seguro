@@ -5,7 +5,7 @@ import '../css/dashboard.css';
 
 function DashboardMedico() {
     const navigate = useNavigate();
-    
+
     // ESTADOS
     const [view, setView] = useState('pacientes');
     const [pacientes, setPacientes] = useState([]);
@@ -153,16 +153,41 @@ function DashboardMedico() {
     };
 
     // --- CHAT ---
+    const [activeChat, setActiveChat] = useState(null); // Paciente seleccionado para chatear
+
     useEffect(() => {
-        if (view === 'chat') {
-            ws.current = new WebSocket(`ws://localhost:3004`);
-            ws.current.onmessage = (e) => setChatMessages(prev => [...prev, JSON.parse(e.data)]);
-        } else { if (ws.current) ws.current.close(); }
-    }, [view]);
+        if (activeChat && view === 'chat') {
+            const myId = sessionStorage.getItem('usuarioId');
+            // 1. Cargar mensajes viejos de la API
+            fetch(`http://localhost:3004/api/chat/historial/${myId}/${activeChat.UsuarioID}`)
+                .then(res => res.json())
+                .then(data => setChatMessages(data));
+
+            // 2. Conectar WebSocket para mensajes nuevos
+            ws.current = new WebSocket(`ws://localhost:3004?userId=${myId}`);
+            ws.current.onmessage = (e) => {
+                const msg = JSON.parse(e.data);
+                // Solo añadir si es de la persona con la que estoy hablando
+                if (msg.userId === activeChat.UsuarioID || msg.receptorId === activeChat.UsuarioID) {
+                    setChatMessages(prev => [...prev, msg]);
+                }
+            };
+        }
+        return () => ws.current?.close();
+    }, [activeChat, view]);
 
     const enviarMensaje = () => {
-        if (!chatInput.trim() || !ws.current) return;
-        ws.current.send(JSON.stringify({ username: medico.nombre, text: chatInput, rol: 1 }));
+        // Validar que haya un texto y un paciente seleccionado
+        if (!chatInput.trim() || !activeChat || !ws.current) return;
+
+        const mensaje = {
+            receptorId: activeChat.UsuarioID, // ID del paciente seleccionado en el sidebar
+            username: medico.nombre,
+            text: chatInput,
+            rol: 1
+        };
+
+        ws.current.send(JSON.stringify(mensaje));
         setChatInput('');
     };
 
@@ -195,7 +220,7 @@ function DashboardMedico() {
                         <h1>Dashboard Médico</h1>
                         <span>{new Date().toLocaleDateString()}</span>
                     </div>
-                    <div style={{display:'flex', gap:'10px'}}>
+                    <div style={{ display: 'flex', gap: '10px' }}>
                         <button className="btn-secondary">ES</button>
                         <button className="btn-secondary"><i className="fas fa-bell"></i></button>
                     </div>
@@ -210,14 +235,14 @@ function DashboardMedico() {
                         </div>
                         <div className="table-responsive">
                             <table className="data-table">
-                                <thead><tr><th>Identificación</th><th>Paciente</th><th>Edad</th><th style={{textAlign:'right'}}>Acciones</th></tr></thead>
+                                <thead><tr><th>Identificación</th><th>Paciente</th><th>Edad</th><th style={{ textAlign: 'right' }}>Acciones</th></tr></thead>
                                 <tbody>
                                     {pacientes.map(p => (
                                         <tr key={p.UsuarioID}>
                                             <td>{p.Identificacion || '--'}</td>
                                             <td>{p.Nombre} {p.Apellido}</td>
                                             <td>{calcularEdad(p.FechaNacimiento)} años</td>
-                                            <td style={{textAlign:'right'}}>
+                                            <td style={{ textAlign: 'right' }}>
                                                 {/* Botón ajustado: btn-sm y sin estirarse */}
                                                 <button className="btn-primary btn-sm" onClick={() => verHistoria(p)}>
                                                     <i className="fas fa-eye"></i> Historia
@@ -225,7 +250,7 @@ function DashboardMedico() {
                                             </td>
                                         </tr>
                                     ))}
-                                    {pacientes.length === 0 && <tr><td colSpan="4" style={{textAlign:'center', padding:'20px'}}>No hay pacientes asignados.</td></tr>}
+                                    {pacientes.length === 0 && <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No hay pacientes asignados.</td></tr>}
                                 </tbody>
                             </table>
                         </div>
@@ -235,39 +260,39 @@ function DashboardMedico() {
                 {/* VISTA DETALLE HISTORIA */}
                 {view === 'detalle' && selectedPaciente && (
                     <section className="content-section">
-                        <button className="btn-secondary" onClick={() => setView('pacientes')} style={{marginBottom: '20px'}}>
+                        <button className="btn-secondary" onClick={() => setView('pacientes')} style={{ marginBottom: '20px' }}>
                             <i className="fas fa-arrow-left"></i> Regresar
                         </button>
-                        
-                        <div style={{background:'#fff', padding:'20px', borderRadius:'8px', boxShadow:'0 1px 2px rgba(0,0,0,0.1)', borderLeft:'4px solid var(--primary)', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+
+                        <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', borderLeft: '4px solid var(--primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                                <h2 style={{margin:0, color: 'var(--text-main)'}}>{selectedPaciente.Nombre} {selectedPaciente.Apellido}</h2>
-                                <p style={{margin:'5px 0 0', color: 'var(--text-muted)'}}>ID: {selectedPaciente.Identificacion} | {calcularEdad(selectedPaciente.FechaNacimiento)} años</p>
+                                <h2 style={{ margin: 0, color: 'var(--text-main)' }}>{selectedPaciente.Nombre} {selectedPaciente.Apellido}</h2>
+                                <p style={{ margin: '5px 0 0', color: 'var(--text-muted)' }}>ID: {selectedPaciente.Identificacion} | {calcularEdad(selectedPaciente.FechaNacimiento)} años</p>
                             </div>
                             {/* Botón ajustado */}
-                            <button className="btn-primary" onClick={() => setModalConsulta({isOpen: true, data: null})}>
+                            <button className="btn-primary" onClick={() => setModalConsulta({ isOpen: true, data: null })}>
                                 <i className="fas fa-plus"></i> Nueva Consulta
                             </button>
                         </div>
 
-                        <h3 style={{color: 'var(--text-muted)', fontSize: '16px', marginTop: '25px', textTransform:'uppercase'}}>Historia Clínica</h3>
-                        
+                        <h3 style={{ color: 'var(--text-muted)', fontSize: '16px', marginTop: '25px', textTransform: 'uppercase' }}>Historia Clínica</h3>
+
                         {historia.consultas.map(c => (
                             <div key={c.ConsultaID} className="exam-card">
                                 <div className="card-actions">
                                     {/* CAMBIO AQUÍ: Botón explícito con texto */}
-                                    <button className="btn-secondary btn-sm" title="Adjuntar Examen" onClick={() => setModalExamen({isOpen: true, data: null, consultaId: c.ConsultaID})}>
+                                    <button className="btn-secondary btn-sm" title="Adjuntar Examen" onClick={() => setModalExamen({ isOpen: true, data: null, consultaId: c.ConsultaID })}>
                                         <i className="fas fa-file-medical"></i> Agregar Examen
                                     </button>
-                                    
+
                                     {/* Botones de iconos solo para editar/borrar */}
-                                    <button className="btn-icon" title="Editar" onClick={() => setModalConsulta({isOpen: true, data: c})}><i className="fas fa-edit"></i></button>
+                                    <button className="btn-icon" title="Editar" onClick={() => setModalConsulta({ isOpen: true, data: c })}><i className="fas fa-edit"></i></button>
                                     <button className="btn-danger-icon" title="Eliminar" onClick={() => handleEliminarConsulta(c.ConsultaID)}><i className="fas fa-trash"></i></button>
                                 </div>
 
                                 <div className="card-meta">{new Date(c.FechaConsulta).toLocaleDateString()} - Dr. {medico.nombre}</div>
                                 <h3 className="card-title">{c.MotivoConsulta}</h3>
-                                
+
                                 <div className="card-body">
                                     <p><strong>Dx:</strong> {c.Diagnostico}</p>
                                     <p><strong>Tx:</strong> {c.Tratamiento}</p>
@@ -276,44 +301,73 @@ function DashboardMedico() {
                                 </div>
 
                                 <div className="exam-list">
-                                    <strong style={{fontSize:'13px', color: 'var(--text-main)'}}><i className="fas fa-paperclip"></i> Exámenes adjuntos:</strong>
+                                    <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}><i className="fas fa-paperclip"></i> Exámenes adjuntos:</strong>
                                     {historia.examenes.filter(e => e.ConsultaID === c.ConsultaID).map(e => (
                                         <div key={e.ExamenID} className="exam-item">
                                             <div>
-                                                <strong>{e.TipoExamen}</strong> <span style={{color: '#999'}}>({new Date(e.FechaRealizacion).toLocaleDateString()})</span>
-                                                {e.RutaArchivo && e.RutaArchivo !== '#' && <a href={e.RutaArchivo} target="_blank" rel="noreferrer" style={{marginLeft:'10px', fontSize:'12px'}}>Ver archivo</a>}
-                                                <p style={{margin:'2px 0 0', color:'#666', fontSize:'13px'}}>{e.ObservacionesResultados}</p>
+                                                <strong>{e.TipoExamen}</strong> <span style={{ color: '#999' }}>({new Date(e.FechaRealizacion).toLocaleDateString()})</span>
+                                                {e.RutaArchivo && e.RutaArchivo !== '#' && <a href={e.RutaArchivo} target="_blank" rel="noreferrer" style={{ marginLeft: '10px', fontSize: '12px' }}>Ver archivo</a>}
+                                                <p style={{ margin: '2px 0 0', color: '#666', fontSize: '13px' }}>{e.ObservacionesResultados}</p>
                                             </div>
-                                            <div style={{display:'flex', gap:'5px'}}>
-                                                <button className="btn-icon" onClick={() => setModalExamen({isOpen: true, data: e, consultaId: c.ConsultaID})}><i className="fas fa-edit"></i></button>
+                                            <div style={{ display: 'flex', gap: '5px' }}>
+                                                <button className="btn-icon" onClick={() => setModalExamen({ isOpen: true, data: e, consultaId: c.ConsultaID })}><i className="fas fa-edit"></i></button>
                                                 <button className="btn-danger-icon" onClick={() => handleEliminarExamen(e.ExamenID)}><i className="fas fa-trash"></i></button>
                                             </div>
                                         </div>
                                     ))}
-                                    {historia.examenes.filter(e => e.ConsultaID === c.ConsultaID).length === 0 && <div style={{fontSize:'13px', color:'#999', marginTop:'5px', fontStyle:'italic'}}>Sin exámenes.</div>}
+                                    {historia.examenes.filter(e => e.ConsultaID === c.ConsultaID).length === 0 && <div style={{ fontSize: '13px', color: '#999', marginTop: '5px', fontStyle: 'italic' }}>Sin exámenes.</div>}
                                 </div>
                             </div>
                         ))}
-                        {historia.consultas.length === 0 && <p style={{textAlign:'center', color: '#666', marginTop: '40px'}}>No hay historial registrado.</p>}
+                        {historia.consultas.length === 0 && <p style={{ textAlign: 'center', color: '#666', marginTop: '40px' }}>No hay historial registrado.</p>}
                     </section>
                 )}
 
                 {/* VISTA CHAT (Sin cambios visuales grandes, pero ajustado a la estructura) */}
                 {view === 'chat' && (
-                    <section className="content-section" style={{height:'100%', display:'flex', flexDirection:'column'}}>
-                        <h2>Chat Global</h2>
-                        <div style={{flex:1, background:'#fff', border:'1px solid #ddd', borderRadius:'8px', display:'flex', flexDirection:'column', overflow:'hidden'}}>
-                            <div style={{flex:1, padding:'20px', overflowY:'auto', background:'#f0f2f5'}}>
-                                {chatMessages.map((msg, i) => (
-                                    <div key={i} style={{marginBottom:'10px', alignSelf: msg.username === medico.nombre ? 'flex-end' : 'flex-start', maxWidth:'70%', background: msg.username === medico.nombre ? '#e7f3ff' : '#fff', padding:'10px', borderRadius:'10px', boxShadow:'0 1px 1px rgba(0,0,0,0.1)'}}>
-                                        <strong style={{fontSize:'11px', color:'#666', display:'block'}}>{msg.username}</strong>
-                                        {msg.text}
+                    <section className="content-section">
+                        <div className="chat-layout">
+                            <div className="chat-sidebar">
+                                <div style={{ padding: '15px', fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Mis Pacientes</div>
+                                {pacientes.map(p => (
+                                    <div key={p.UsuarioID}
+                                        className={`patient-item ${activeChat?.UsuarioID === p.UsuarioID ? 'active' : ''}`}
+                                        onClick={() => { setActiveChat(p); setChatMessages([]); }}>
+                                        {p.Nombre} {p.Apellido}
                                     </div>
                                 ))}
                             </div>
-                            <div style={{padding:'15px', background:'#fff', borderTop:'1px solid #eee', display:'flex', gap:'10px'}}>
-                                <input value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="Escribe..." style={{flex:1, padding:'10px', borderRadius:'20px', border:'1px solid #ddd', outline:'none'}} onKeyDown={(e) => e.key === 'Enter' && enviarMensaje()} />
-                                <button className="btn-primary" onClick={enviarMensaje}><i className="fas fa-paper-plane"></i></button>
+                            <div className="chat-main">
+                                {activeChat ? (
+                                    <>
+                                        <div className="chat-messages">
+                                            {chatMessages.filter(m => m.userId === activeChat.UsuarioID || m.receptorId === activeChat.UsuarioID).map((msg, i) => (
+                                                <div key={i} className={`message-bubble ${msg.userId === activeChat.UsuarioID ? 'incoming' : 'outgoing'}`}>
+                                                    {/* ETIQUETA DE NOMBRE */}
+                                                    <span style={{ fontSize: '10px', display: 'block', opacity: 0.7, marginBottom: '2px' }}>
+                                                        {msg.userId === activeChat.UsuarioID ? `${activeChat.Nombre}` : 'Yo'}
+                                                    </span>
+
+                                                    {msg.text}
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div style={{ padding: '15px', display: 'flex', gap: '10px', background: '#fff', borderTop: '1px solid #eee' }}>
+                                            <input
+                                                value={chatInput}
+                                                onChange={(e) => setChatInput(e.target.value)}
+                                                placeholder={`Escribir a ${activeChat.Nombre}...`}
+                                                style={{ flex: 1, padding: '10px', borderRadius: '20px', border: '1px solid #ddd', outline: 'none' }}
+                                                onKeyDown={(e) => e.key === 'Enter' && enviarMensaje()}
+                                            />
+                                            <button className="btn-primary" onClick={enviarMensaje}>
+                                                <i className="fas fa-paper-plane"></i>
+                                            </button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div style={{ margin: 'auto', color: '#999' }}>Selecciona un paciente para chatear</div>
+                                )}
                             </div>
                         </div>
                     </section>
@@ -324,7 +378,7 @@ function DashboardMedico() {
             {(modalConsulta.isOpen || modalExamen.isOpen) && (
                 <div className="modal">
                     <div className="modal-content">
-                        <span className="close-modal" onClick={() => { setModalConsulta({isOpen: false}); setModalExamen({isOpen: false}); }}>&times;</span>
+                        <span className="close-modal" onClick={() => { setModalConsulta({ isOpen: false }); setModalExamen({ isOpen: false }); }}>&times;</span>
                         {modalConsulta.isOpen && (
                             <form onSubmit={handleGuardarConsulta}>
                                 <h2>{modalConsulta.data ? 'Editar Consulta' : 'Registrar Consulta'}</h2>
@@ -336,7 +390,7 @@ function DashboardMedico() {
                                 </div>
                                 <div className="form-group"><label>Síntomas</label><textarea name="sintomas" rows="2" defaultValue={modalConsulta.data?.Sintomas}></textarea></div>
                                 <div className="form-group"><label>Notas Adicionales</label><textarea name="notas" rows="2" defaultValue={modalConsulta.data?.NotasAdicionales}></textarea></div>
-                                <button type="submit" className="btn-primary btn-full" style={{marginTop:'10px'}}>Guardar</button>
+                                <button type="submit" className="btn-primary btn-full" style={{ marginTop: '10px' }}>Guardar</button>
                             </form>
                         )}
                         {modalExamen.isOpen && (
@@ -353,7 +407,7 @@ function DashboardMedico() {
                                 </div>
                                 <div className="form-group"><label>URL del Archivo (Opcional)</label><input type="text" name="ruta" placeholder="https://..." defaultValue={modalExamen.data?.RutaArchivo !== '#' ? modalExamen.data?.RutaArchivo : ''} /></div>
                                 <div className="form-group"><label>Observaciones/Resultados</label><textarea name="observaciones" rows="3" defaultValue={modalExamen.data?.ObservacionesResultados}></textarea></div>
-                                <button type="submit" className="btn-primary btn-full" style={{marginTop:'10px'}}>Guardar</button>
+                                <button type="submit" className="btn-primary btn-full" style={{ marginTop: '10px' }}>Guardar</button>
                             </form>
                         )}
                     </div>
