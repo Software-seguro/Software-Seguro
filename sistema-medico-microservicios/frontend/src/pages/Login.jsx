@@ -42,7 +42,9 @@ function Login() {
         setTimeout(() => {
           if (body.user.rol === 1) { // 1 = Medico
             navigate('/dashboard-medico');
-          } else {
+          } else if (body.user.rol === 3) { // 3 = Admin
+            navigate('/dashboard-admin');
+          } else { // 2 = Paciente
             navigate('/dashboard-paciente');
           }
         }, 1000);

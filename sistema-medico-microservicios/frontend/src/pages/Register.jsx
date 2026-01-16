@@ -79,6 +79,7 @@ function Register() {
         profileData = {
             nombre: formData.get('nombre'),
             apellido: formData.get('apellido'),
+            identificacion: formData.get('identificacion'),
             especialidad: formData.get('especialidad'),
             licencia: formData.get('numeroLicencia'),
             telefono: formData.get('telefono')
@@ -168,7 +169,7 @@ function Register() {
 
             <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
               <div className="form-group" style={{flex: 1}}>
-                <input type="text" name="identificacion" placeholder="Cédula/DNI" required style={{width: '100%'}} />
+                <input type="text" name="identificacion" placeholder="Identificación (Cédula/DNI)" required />
               </div>
               <div className="form-group" style={{flex: 1}}>
                 <input type="tel" name="telefono" placeholder="Teléfono" style={{width: '100%'}} />

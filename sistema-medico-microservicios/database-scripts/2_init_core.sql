@@ -8,6 +8,7 @@ CREATE TABLE Medicos (
     UsuarioID INT NOT NULL UNIQUE, -- Referencia lógica a DB_Auth
     Nombre NVARCHAR(50) NOT NULL,
     Apellido NVARCHAR(50) NOT NULL,
+    Identificacion NVARCHAR(20) NOT NULL UNIQUE,
     Especialidad NVARCHAR(100) NOT NULL,
     NumeroLicencia NVARCHAR(50) NOT NULL UNIQUE,
     Telefono NVARCHAR(20)
@@ -29,8 +30,8 @@ CREATE TABLE Pacientes (
 );
 
 -- Datos semilla (IDs deben coincidir manualmente con los creados en Auth)
-INSERT INTO Medicos (UsuarioID, Nombre, Apellido, Especialidad, NumeroLicencia)
-VALUES (1, 'Juan', 'Perez', 'Cardiología', 'MED-998877');
+INSERT INTO Medicos (UsuarioID, Nombre, Apellido, Identificacion, Especialidad, NumeroLicencia)
+VALUES (1, 'Juan', 'Perez', '123456789', 'Cardiología', 'MED-998877');
 
 INSERT INTO Pacientes (UsuarioID, MedicoID, Nombre, Apellido, FechaNacimiento, Identificacion, TipoSangre)
 VALUES (2, 1, 'Ana', 'Garcia', '1990-05-15', '1122334455', 'O+');

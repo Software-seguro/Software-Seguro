@@ -1,6 +1,8 @@
+// authController.js
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const userRepo = require('../repositories/userRepository');
+const { getConnection, sql } = require('../config/db');
 require('dotenv').config();
 
 // Registro de Usuario
@@ -111,4 +113,46 @@ const forgotPassword = async (req, res) => {
     }
 };
 
-module.exports = { register, login, forgotPassword };
+// GESTIÓN ADMIN: Actualizar credenciales (Email o Password)
+const adminUpdateUser = async (req, res) => {
+    const { id } = req.params; // ID del usuario a modificar
+    const { email, password } = req.body;
+
+    try {
+        const pool = await getConnection();
+        
+        if (email) {
+            await pool.request()
+                .input('ID', sql.Int, id)
+                .input('Email', sql.NVarChar, email)
+                .query('UPDATE Usuarios SET Email = @Email WHERE UsuarioID = @ID');
+        }
+
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            await pool.request()
+                .input('ID', sql.Int, id)
+                .input('Pass', sql.NVarChar, hashedPassword)
+                .query('UPDATE Usuarios SET PasswordHash = @Pass WHERE UsuarioID = @ID');
+        }
+
+        res.json({ message: 'Credenciales actualizadas' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error actualizando credenciales' });
+    }
+};
+
+// GESTIÓN ADMIN: Eliminar usuario de la tabla de autenticación
+const deleteUserAuth = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const pool = await getConnection();
+        await pool.request().input('ID', sql.Int, id).query('DELETE FROM Usuarios WHERE UsuarioID = @ID');
+        res.json({ message: 'Usuario eliminado de Auth' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error eliminando usuario Auth' });
+    }
+};
+
+module.exports = { register, login, forgotPassword, adminUpdateUser, deleteUserAuth };

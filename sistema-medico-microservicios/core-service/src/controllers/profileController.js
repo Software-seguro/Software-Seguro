@@ -5,9 +5,9 @@ const createMedicoProfile = async (req, res) => {
     try {
         // req.user viene del middleware (Token decodificado)
         const { id } = req.user; 
-        const { nombre, apellido, especialidad, licencia, telefono } = req.body;
+        const { nombre, apellido, identificacion, especialidad, licencia, telefono } = req.body;
 
-        await profileRepo.createMedico({ usuarioId: id, nombre, apellido, especialidad, licencia, telefono });
+        await profileRepo.createMedico({ usuarioId: id, nombre, apellido, identificacion, especialidad, licencia, telefono });
         res.status(201).json({ message: 'Perfil de médico creado' });
     } catch (error) {
         console.error(error);
