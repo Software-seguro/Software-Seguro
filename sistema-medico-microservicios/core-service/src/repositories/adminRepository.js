@@ -6,7 +6,8 @@ const getAllMedicos = async () => {
     const result = await pool.request().query(`
         SELECT 
             m.*, 
-            u.Email 
+            u.Email,
+            u.Activo 
         FROM DB_Core.dbo.Medicos m
         INNER JOIN DB_Auth.dbo.Usuarios u ON m.UsuarioID = u.UsuarioID
     `);
@@ -19,6 +20,7 @@ const getAllPacientes = async () => {
         SELECT 
             p.*, 
             u.Email,
+            u.Activo,
             m.Nombre as NombreMedico, 
             m.Apellido as ApellidoMedico
         FROM DB_Core.dbo.Pacientes p
@@ -69,4 +71,15 @@ const deletePaciente = async (id) => {
     await pool.request().input('ID', sql.Int, id).query('DELETE FROM Pacientes WHERE PacienteID = @ID');
 };
 
-module.exports = { getAllMedicos, getAllPacientes, checkLicense, updateMedico, getPatientsByMedico, deleteMedico, deletePaciente };
+const unlockUser = async (usuarioId) => {
+    const pool = await getConnection();
+    await pool.request()
+        .input('ID', sql.Int, usuarioId)
+        .query(`
+            UPDATE DB_Auth.dbo.Usuarios 
+            SET Activo = 1, IntentosFallidos = 0 
+            WHERE UsuarioID = @ID
+        `);
+};
+
+module.exports = { getAllMedicos, getAllPacientes, checkLicense, updateMedico, getPatientsByMedico, deleteMedico, deletePaciente, unlockUser };

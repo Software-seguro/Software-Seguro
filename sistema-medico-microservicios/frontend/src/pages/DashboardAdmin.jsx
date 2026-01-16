@@ -198,6 +198,27 @@ function DashboardAdmin() {
         }
     };
 
+    const handleUnlock = async (usuarioId) => {
+        if (!confirm("¿Deseas desbloquear esta cuenta y reiniciar sus intentos fallidos?")) return;
+        
+        const token = sessionStorage.getItem('token');
+        try {
+            const res = await fetch(`${API_URL}/api/core/admin/users/${usuarioId}/unlock`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                alert("Cuenta desbloqueada.");
+                cargarDatos(); // Recargar la tabla para ver el cambio a verde
+            } else {
+                alert("Error al desbloquear.");
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     return (
         <div className="container">
             <aside className="sidebar">
@@ -233,6 +254,7 @@ function DashboardAdmin() {
                             <thead>
                                 <tr>
                                     <th>ID</th>
+                                    <th>Estado</th>
                                     <th>Nombre Completo</th>
                                     <th>Email</th>
                                     {tab === 'medicos' ? (
@@ -247,6 +269,22 @@ function DashboardAdmin() {
                                 {filteredData.map(u => (
                                     <tr key={tab === 'medicos' ? u.MedicoID : u.PacienteID}>
                                         <td>{tab === 'medicos' ? u.MedicoID : u.PacienteID}</td>
+                                        <td style={{textAlign: 'center'}}>
+                                            {u.Activo ? (
+                                                <span style={{color: 'green', fontWeight:'bold', fontSize:'12px'}}>
+                                                    <i className="fas fa-check-circle"></i> Activo
+                                                </span>
+                                            ) : (
+                                                <button 
+                                                    className="btn-danger-icon" 
+                                                    style={{fontSize:'12px', padding:'2px 8px', borderRadius:'10px', border:'1px solid red'}}
+                                                    onClick={() => handleUnlock(u.UsuarioID)} // Usamos UsuarioID, que es la FK común
+                                                    title="Click para Desbloquear"
+                                                >
+                                                    <i className="fas fa-lock"></i> Bloqueado
+                                                </button>
+                                            )}
+                                        </td>
                                         <td style={{fontWeight:'bold'}}>{u.Nombre} {u.Apellido}</td>
                                         <td>{u.Email || <span style={{color:'#999'}}>No disponible</span>}</td> 
                                         

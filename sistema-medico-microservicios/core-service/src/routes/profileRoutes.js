@@ -17,5 +17,6 @@ router.put('/admin/medicos/:id', verifyToken, adminController.updateMedico);
 router.delete('/admin/medicos/:id', verifyToken, adminController.deleteMedicoCheck);
 router.delete('/admin/pacientes/:id', verifyToken, adminController.deletePacienteFull);
 router.post('/validate-registry', profileController.validateRegistryData);
+router.put('/admin/users/:id/unlock', verifyToken, adminController.unlockUserAccount);
 
 module.exports = router;

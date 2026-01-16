@@ -24,3 +24,9 @@ INSERT INTO Roles (NombreRol) VALUES ('Medico'), ('Paciente'), ('Administrador')
 INSERT INTO Usuarios (Email, PasswordHash, RolID) VALUES ('dr.juan@hospital.com', 'hash_simulado_123456', 1);
 INSERT INTO Usuarios (Email, PasswordHash, RolID) VALUES ('ana.garcia@email.com', 'hash_simulado_123456', 2);
 GO
+USE DB_Auth;
+GO
+
+-- Agregamos el contador de fallos
+ALTER TABLE Usuarios ADD IntentosFallidos INT DEFAULT 0 NOT NULL;
+GO

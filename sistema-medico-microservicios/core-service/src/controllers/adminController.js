@@ -47,4 +47,15 @@ const deletePacienteFull = async (req, res) => {
     } catch (e) { res.status(500).json({ message: 'Error eliminando paciente' }); }
 };
 
-module.exports = { getAllData, updateMedico, deleteMedicoCheck, deletePacienteFull };
+const unlockUserAccount = async (req, res) => {
+    try {
+        const { id } = req.params; // Recibimos el UsuarioID (no el MedicoID/PacienteID)
+        await adminRepo.unlockUser(id);
+        res.json({ message: 'Cuenta desbloqueada y contador reiniciado exitosamente.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error al desbloquear cuenta.' });
+    }
+};
+
+module.exports = { getAllData, updateMedico, deleteMedicoCheck, deletePacienteFull, unlockUserAccount };
