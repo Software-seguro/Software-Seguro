@@ -67,6 +67,32 @@ function DashboardAdmin() {
         const id = isMedico ? modalUser.data.MedicoID : modalUser.data.PacienteID;
         const usuarioId = modalUser.data.UsuarioID;
 
+        // Obtenemos los valores del formulario
+        const identificacionVal = form.identificacion.value;
+        const licenciaVal = isMedico ? form.licencia.value : null;
+
+        try {
+            const resVal = await fetch(`${API_URL}/api/core/validate-registry`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    identificacion: identificacionVal, 
+                    licencia: licenciaVal,
+                    excludeUserId: usuarioId // ¡CLAVE! Enviamos el ID para que no se choque consigo mismo
+                })
+            });
+
+            if (!resVal.ok) {
+                const errVal = await resVal.json();
+                alert("⚠️ Error de validación: " + errVal.message);
+                return; // DETENEMOS EL GUARDADO
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Error al conectar con el servicio de validación");
+            return;
+        }
+
         // 1. Actualizar Email (Auth Service)
         const email = form.email.value;
         if (email && email !== modalUser.data.Email) {
@@ -94,7 +120,6 @@ function DashboardAdmin() {
             direccion: form.direccion.value,
             telefono: form.telefono.value,
             medicoId: form.medicoId.value,
-            // Importante: Enviamos las alergias existentes para no borrarlas al editar otros datos
             alergias: modalUser.data.Alergias 
         };
 
@@ -105,12 +130,12 @@ function DashboardAdmin() {
         });
 
         if (res.ok) {
-            alert('Usuario actualizado');
+            alert('Usuario actualizado correctamente');
             setModalUser({ isOpen: false, type: '', data: null });
             cargarDatos();
         } else {
             const err = await res.json();
-            alert('Error: ' + err.message);
+            alert('Error al guardar: ' + err.message);
         }
     };
 

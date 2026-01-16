@@ -90,9 +90,11 @@ const updatePacienteProfile = async (req, res) => {
 
 const validateRegistryData = async (req, res) => {
     try {
-        const { identificacion, licencia } = req.body;
+        // Ahora recibimos excludeUserId (opcional)
+        const { identificacion, licencia, excludeUserId } = req.body;
         
-        const result = await profileRepo.checkUniqueData(identificacion, licencia);
+        // Pasamos el ID (si no viene, enviamos 0 para que no excluya a nadie, caso registro nuevo)
+        const result = await profileRepo.checkUniqueData(identificacion, licencia, excludeUserId || 0);
         
         if (result.exists) {
             return res.status(409).json({ message: `El valor de ${result.field} ya está registrado en el sistema.` });

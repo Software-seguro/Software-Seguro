@@ -108,17 +108,17 @@ const updatePaciente = async (id, data) => {
     return result;
 };
 
-const checkUniqueData = async (identificacion, licencia) => {
+const checkUniqueData = async (identificacion, licencia, excludeUserId = 0) => {
     const pool = await getConnection();
     
-    // 1. Verificar Identificación (En Medicos Y Pacientes)
-    // Usamos UNION para buscar en ambas tablas a la vez
+    // 1. Verificar Identificación (Excluyendo al usuario actual si se envía su ID)
     const idCheck = await pool.request()
         .input('Identificacion', sql.NVarChar, identificacion)
+        .input('ExcludeID', sql.Int, excludeUserId) // ID del usuario a ignorar (el que se edita)
         .query(`
-            SELECT 1 FROM Medicos WHERE Identificacion = @Identificacion
+            SELECT 1 FROM Medicos WHERE Identificacion = @Identificacion AND UsuarioID != @ExcludeID
             UNION
-            SELECT 1 FROM Pacientes WHERE Identificacion = @Identificacion
+            SELECT 1 FROM Pacientes WHERE Identificacion = @Identificacion AND UsuarioID != @ExcludeID
         `);
 
     if (idCheck.recordset.length > 0) {
@@ -129,7 +129,8 @@ const checkUniqueData = async (identificacion, licencia) => {
     if (licencia) {
         const licCheck = await pool.request()
             .input('Licencia', sql.NVarChar, licencia)
-            .query(`SELECT 1 FROM Medicos WHERE NumeroLicencia = @Licencia`);
+            .input('ExcludeID', sql.Int, excludeUserId)
+            .query(`SELECT 1 FROM Medicos WHERE NumeroLicencia = @Licencia AND UsuarioID != @ExcludeID`);
         
         if (licCheck.recordset.length > 0) {
             return { exists: true, field: 'Número de Licencia' };
