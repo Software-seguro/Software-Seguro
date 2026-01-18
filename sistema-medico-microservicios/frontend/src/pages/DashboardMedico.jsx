@@ -358,7 +358,7 @@ function DashboardMedico() {
                                                     </button>
 
                                                     {/* Botón Historia */}
-                                                    <button className="btn-primary btn-sm" onClick={() => verHistoria(p)}>
+                                                    <button className="btn btn-primary btn-sm" onClick={() => verHistoria(p)}>
                                                         <i className="fas fa-eye"></i> Historia
                                                     </button>
                                                 </div>
@@ -384,7 +384,7 @@ function DashboardMedico() {
                                 <h2 style={{ margin: 0, color: 'var(--text-main)' }}>{selectedPaciente.Nombre} {selectedPaciente.Apellido}</h2>
                                 <p style={{ margin: '5px 0 0', color: 'var(--text-muted)' }}>ID: {selectedPaciente.Identificacion} | {calcularEdad(selectedPaciente.FechaNacimiento)} años</p>
                             </div>
-                            <button className="btn-primary" onClick={() => setModalConsulta({ isOpen: true, data: null })}>
+                            <button className="btn btn-primary" onClick={() => setModalConsulta({ isOpen: true, data: null })}>
                                 <i className="fas fa-plus"></i> Nueva Consulta
                             </button>
                         </div>
@@ -468,7 +468,7 @@ function DashboardMedico() {
                                                 style={{ flex: 1, padding: '10px', borderRadius: '20px', border: '1px solid #ddd', outline: 'none' }}
                                                 onKeyDown={(e) => e.key === 'Enter' && enviarMensaje()}
                                             />
-                                            <button className="btn-primary" onClick={enviarMensaje}>
+                                            <button className="btn btn-primary" onClick={enviarMensaje}>
                                                 <i className="fas fa-paper-plane"></i>
                                             </button>
                                         </div>
@@ -526,7 +526,7 @@ function DashboardMedico() {
                                 </small>
                             </div>
 
-                            <button type="submit" className="btn-primary btn-full" style={{ marginTop: '10px' }}>Guardar Cambios</button>
+                            <button type="submit" className="btn btn-primary">Guardar Cambios</button>
                         </form>
                     </div>
                 </div>
@@ -548,7 +548,7 @@ function DashboardMedico() {
                                 </div>
                                 <div className="form-group"><label>Síntomas</label><textarea name="sintomas" rows="2" defaultValue={modalConsulta.data?.Sintomas}></textarea></div>
                                 <div className="form-group"><label>Notas Adicionales</label><textarea name="notas" rows="2" defaultValue={modalConsulta.data?.NotasAdicionales}></textarea></div>
-                                <button type="submit" className="btn-primary btn-full" style={{ marginTop: '10px' }}>Guardar</button>
+                                <button type="submit" className="btn btn-primary">Guardar</button>
                             </form>
                         )}
                     </div>
@@ -573,7 +573,7 @@ function DashboardMedico() {
                             </div>
                             <div className="form-group"><label>URL del Archivo (Opcional)</label><input type="text" name="ruta" placeholder="https://..." defaultValue={modalExamen.data?.RutaArchivo !== '#' ? modalExamen.data?.RutaArchivo : ''} /></div>
                             <div className="form-group"><label>Observaciones/Resultados</label><textarea name="observaciones" rows="3" defaultValue={modalExamen.data?.ObservacionesResultados}></textarea></div>
-                            <button type="submit" className="btn-primary btn-full" style={{ marginTop: '10px' }}>Guardar</button>
+                            <button type="submit" className="btn btn-primary">Guardar</button>
                         </form>
                     </div>
                 </div>

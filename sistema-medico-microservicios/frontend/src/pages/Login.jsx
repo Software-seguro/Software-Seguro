@@ -151,8 +151,14 @@ function Login() {
 
             <div className="separator"></div>
 
-            <div style={{ textAlign: 'center' }}>
-              <Link to="/register" className="btn btn-success">Crear cuenta nueva</Link>
+            <div>
+              <button
+                type="button"
+                className="btn btn-success"
+                onClick={() => navigate('/register')}
+              >
+                Crear cuenta nueva
+              </button>
             </div>
           </div>
 

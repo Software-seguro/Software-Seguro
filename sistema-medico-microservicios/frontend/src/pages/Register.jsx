@@ -222,7 +222,7 @@ function Register() {
               </div>
             )}
 
-            <button type="submit" className="btn btn-success btn-full btn-thin" style={{ width: '100%', marginTop: '15px' }}>
+            <button type="submit" className="btn btn-success">
               Registrarte
             </button>
           </form>

@@ -193,7 +193,7 @@ function DashboardPaciente() {
                                         style={{ flex: 1, padding: '12px', borderRadius: '20px', border: '1px solid #ddd', outline: 'none' }}
                                         onKeyDown={(e) => e.key === 'Enter' && enviarMensaje()}
                                     />
-                                    <button className="btn-primary" onClick={enviarMensaje}>
+                                    <button className="btn btn-primary" onClick={enviarMensaje}>
                                         <i className="fas fa-paper-plane"></i>
                                     </button>
                                 </div>
