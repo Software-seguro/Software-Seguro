@@ -1,191 +1,237 @@
 /* frontend/src/css/styles.css */
 :root {
 
-  /* Paleta inspirada en estilo moderno/Facebook pero para Salud */
+    /* Paleta inspirada en estilo moderno/Facebook pero para Salud */
 
-  --bg-body: #f0f2f5;
+    --bg-body: #f0f2f5;
 
-  --card-bg: #ffffff;
+    --card-bg: #ffffff;
 
-  --primary: #1877f2;       /* Azul fuerte para acciones principales */
+    --primary: #1877f2;
+    /* Azul fuerte para acciones principales */
 
-  --primary-hover: #166fe5;
+    --primary-hover: #166fe5;
 
-  --success: #42b72a;       /* Verde para "Crear cuenta" */
+    --success: #42b72a;
+    /* Verde para "Crear cuenta" */
 
-  --success-hover: #36a420;
+    --success-hover: #36a420;
 
-  --text-main: #1c1e21;
+    --text-main: #1c1e21;
 
-  --text-muted: #606770;
+    --text-muted: #606770;
 
-  --border: #dddfe2;
+    --border: #dddfe2;
 
-  --shadow: 0 2px 4px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
+    --shadow: 0 2px 4px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1);
 
-  --radius: 8px;
+    --radius: 8px;
 
 }
 
-* { box-sizing: border-box; }
+* {
+    box-sizing: border-box;
+}
+
+/* Clase única para el título de la marca */
+.logo-apolo-unified {
+    color: var(--primary);
+    font-size: 4rem; 
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 20px;
+    letter-spacing: -3px; 
+    line-height: 1;
+    display: block;
+    width: 100%;
+}
 
 .auth-wrapper {
-  margin: 0;
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background-color: var(--bg-body); /* Mueve el color de fondo aquí o déjalo en index.css */
+    margin: 0;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-color: var(--bg-body);
+    /* Mueve el color de fondo aquí o déjalo en index.css */
 }
 
 /* Contenedor Principal dividido en dos áreas */
 
 .main-container {
-  display: flex;
-  max-width: 980px;
-  width: 100%;
-  justify-content: space-between;
-  align-items: center; /* Centrado verticalmente */
-  gap: 40px;
+    display: flex;
+    max-width: 980px;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    /* Centrado verticalmente */
+    gap: 40px;
 }
 
 /* Lado Izquierdo: Branding (APOLO) */
 .brand-section {
-  flex: 1;
-  max-width: 500px;
-  padding-bottom: 20px;
+    flex: 1;
+    max-width: 500px;
+    padding-bottom: 20px;
 }
 
 .brand-section h1 {
-  color: var(--primary);
-  font-size: 4rem; /* Grande e impactante */
-  font-weight: 800;
-  margin: 0 0 10px 0;
-  letter-spacing: -2px;
+    color: var(--primary);
+    font-size: 4rem;
+    /* Grande e impactante */
+    font-weight: 800;
+    margin: 0 0 10px 0;
+    letter-spacing: -2px;
 }
 
 .brand-section p {
-  font-size: 1.5rem; /* Subtítulo legible */
-  line-height: 1.3;
-  color: var(--text-main);
-  margin: 0;
-  font-weight: 400;
+    font-size: 1.5rem;
+    /* Subtítulo legible */
+    line-height: 1.3;
+    color: var(--text-main);
+    margin: 0;
+    font-weight: 400;
 }
 
 /* Lado Derecho: Tarjeta de Login */
 .login-section {
-  flex: 0 0 396px; /* Ancho fijo similar al estándar de tarjetas de login */
+    flex: 0 0 396px;
+    /* Ancho fijo similar al estándar de tarjetas de login */
 }
 
 .card {
-  background: var(--card-bg);
-  padding: 20px;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  text-align: center;
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-align: center;
 }
 
 /* Inputs más grandes y limpios */
 .form-group {
-  margin-bottom: 12px;
+    margin-bottom: 12px;
 }
 
 input {
-  width: 100%;
-  padding: 14px 16px;
-  font-size: 17px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  outline: none;
-  transition: border-color 0.2s;
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 17px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.2s;
 }
 
 input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
 }
 
 /* Botones */
-button, .btn {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 6px;
-  font-size: 20px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s;
-  text-decoration: none;
-  display: inline-block;
-  line-height: 1.2;
+button,
+.btn {
+    width: 100%;           /* Ocupa el ancho disponible */
+    max-width: 300px;      /* Tamaño máximo igual para todos */
+    height: 48px;          /* Altura fija para que no varíen */
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin: 10px auto;     /* Centrado automático */
+    padding: 0 20px !important;
+    border: none;
+    border-radius: 6px;
+    font-size: 17px !important;
+    font-weight: 700 !important;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    line-height: 1;
 }
 
 .btn-primary {
-  background-color: var(--primary);
-  color: white;
+    background-color: var(--primary);
+    color: white;
 }
 
-.btn-primary:hover { background-color: var(--primary-hover); }
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
 
 .forgot-link {
-  display: block;
-  margin: 16px 0;
-  color: var(--primary);
-  font-size: 14px;
-  text-decoration: none;
+    display: block;
+    margin: 16px 0;
+    color: var(--primary);
+    font-size: 14px;
+    text-decoration: none;
 }
 
-.forgot-link:hover { text-decoration: underline; }
+.forgot-link:hover {
+    text-decoration: underline;
+}
 
 /* Separador */
 .separator {
-  border-bottom: 1px solid var(--border);
-  margin: 20px 0;
+    border-bottom: 1px solid var(--border);
+    margin: 20px 0;
 }
 
 /* Botón Crear Cuenta (Verde y destacado) */
 .btn-success {
-  background-color: var(--success);
-  color: white;
-  width: auto; /* No ocupa todo el ancho */
-  padding: 10px 20px;
-  font-size: 17px;
+    background-color: var(--success);
+    color: white;
 }
 
-.btn-success:hover { background-color: var(--success-hover); }
+.btn-success:hover {
+    background-color: var(--success-hover);
+}
 
 /* Mensajes de error */
 .msg {
-  font-size: 14px;
-  margin-bottom: 10px;
-  min-height: 20px; /* Evita saltos */
+    font-size: 14px;
+    margin-bottom: 10px;
+    min-height: 20px;
+    /* Evita saltos */
 }
 
 /* Responsividad: En móviles se pone uno debajo del otro */
 @media (max-width: 900px) {
-  .main-container {
-    flex-direction: column;
-    text-align: center;
-    gap: 20px;
-  }
+    .main-container {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
 
-  .brand-section {
-    padding: 0;
-    max-width: 100%;
-  }
+    .brand-section {
+        padding: 0;
+        max-width: 100%;
+    }
 
-  .brand-section h1 { font-size: 3rem; }
-  .brand-section p { font-size: 1.2rem; }
-  .login-section { width: 100%; max-width: 400px; }
+    .brand-section h1 {
+        font-size: 3rem;
+    }
+
+    .brand-section p {
+        font-size: 1.2rem;
+    }
+
+    .login-section {
+        width: 100%;
+        max-width: 400px;
+    }
 }
 
 .modal-overlay {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.6);
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     z-index: 1000;
 }
 
@@ -196,10 +242,19 @@ button, .btn {
     width: 90%;
     max-width: 450px;
     text-align: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
-.modal-card h2 { margin-bottom: 10px; color: #1c1e21; }
-.modal-card p { color: #606770; font-size: 15px; margin-bottom: 25px; }
+
+.modal-card h2 {
+    margin-bottom: 10px;
+    color: #1c1e21;
+}
+
+.modal-card p {
+    color: #606770;
+    font-size: 15px;
+    margin-bottom: 25px;
+}
 
 /* Contenedor de los 6 cuadros */
 .otp-container {
@@ -239,16 +294,37 @@ button, .btn {
     font-size: 14px;
     text-decoration: hover;
 }
+
 .modal-content {
-    background: white; padding: 30px; border-radius: 8px;
-    text-align: center; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
-.otp-container { display: flex; justify-content: space-between; margin: 20px 0; }
+
+.otp-container {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+}
+
 .otp-field {
-    width: 45px; height: 55px; border: 1px solid #ddd; border-radius: 4px;
-    text-align: center; font-size: 24px; font-weight: bold;
+    width: 45px;
+    height: 55px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
 }
-.otp-field:focus { border-color: #1877f2; outline: none; box-shadow: 0 0 5px rgba(24,119,242,0.3); }
+
+.otp-field:focus {
+    border-color: #1877f2;
+    outline: none;
+    box-shadow: 0 0 5px rgba(24, 119, 242, 0.3);
+}
 
 /* Icono de error circular */
 .error-icon {
@@ -285,8 +361,13 @@ button, .btn {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .modal-card {
@@ -294,38 +375,39 @@ button, .btn {
 }
 
 @keyframes slideUp {
-    from { transform: translateY(20px); }
-    to { transform: translateY(0); }
+    from {
+        transform: translateY(20px);
+    }
+
+    to {
+        transform: translateY(0);
+    }
 }
 
 /* Contenedor para botones lado a lado */
 .modal-actions-inline {
     display: flex;
-    gap: 12px; /* Espacio entre botones */
+    gap: 12px;
+    /* Espacio entre botones */
     justify-content: center;
     margin-top: 10px;
 }
 
 /* Botón Rojo (Cancelar) */
 .btn-danger {
-    background-color: #767676 ; 
+    background-color: #767676;
     color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-weight: bold;
-    font-size: 15px;
-    cursor: pointer;
-    transition: background 0.2s;
 }
 
 .btn-danger:hover {
-    background-color: #6d6d6d; /* Rojo más oscuro al pasar el mouse */
+    background-color: #6d6d6d;
+    /* Rojo más oscuro al pasar el mouse */
 }
 
 /* Asegurar que el botón azul se vea bien al lado */
-.modal-card .btn-primary {
-    margin-top: 0; /* Quitar margen superior para que alineen perfecto */
+.modal-card {
+    margin-top: 0;
+    /* Quitar margen superior para que alineen perfecto */
 }
 
 .fb-footer-text {
@@ -364,30 +446,56 @@ button, .btn {
 }
 
 /* Colores de texto dinámicos */
-.text-danger { color: #dc2626 !important; }
-.text-success { color: #42b72a !important; }
-.text-warning { color: #f59e0b !important; }
+.text-danger {
+    color: #dc2626 !important;
+}
+
+.text-success {
+    color: #42b72a !important;
+}
+
+.text-warning {
+    color: #f59e0b !important;
+}
 
 /* Icono de Peligro (Rojo) */
 .danger-icon {
-    width: 60px; height: 60px;
-    background-color: #fce8e8; color: #dc2626;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-size: 30px; font-weight: bold; margin: 0 auto 15px; border: 2px solid #dc2626;
+    width: 60px;
+    height: 60px;
+    background-color: #fce8e8;
+    color: #dc2626;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight: bold;
+    margin: 0 auto 15px;
+    border: 2px solid #dc2626;
 }
 
 /* Icono de Advertencia (Amarillo/Naranja) */
 .warning-icon {
-    width: 60px; height: 60px;
-    background-color: #fffbeb; color: #f59e0b;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-size: 30px; font-weight: bold; margin: 0 auto 15px; border: 2px solid #f59e0b;
+    width: 60px;
+    height: 60px;
+    background-color: #fffbeb;
+    color: #f59e0b;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight: bold;
+    margin: 0 auto 15px;
+    border: 2px solid #f59e0b;
 }
 
 /* Botón Gris (como el de cancelar del código) */
 .btn-secondary {
-    background-color: #e4e6eb; /* Gris claro estilo Facebook */
-    color: #4b4f56;           /* Texto gris oscuro */
+    background-color: #e4e6eb;
+    /* Gris claro estilo Facebook */
+    color: #4b4f56;
+    /* Texto gris oscuro */
     border: none;
     padding: 10px 20px;
     border-radius: 6px;
@@ -400,13 +508,21 @@ button, .btn {
 }
 
 .btn-secondary:hover {
-    background-color: #d8dadf; /* Un poco más oscuro al pasar el mouse */
+    background-color: #d8dadf;
+    /* Un poco más oscuro al pasar el mouse */
 }
 
 /* Animación opcional para que el texto aparezca suavemente */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Contenedor de etiqueta + input */
@@ -466,7 +582,8 @@ input::placeholder {
     color: #1c1e21;
     outline: none;
     cursor: pointer;
-    appearance: none; /* Quitar flecha nativa si se desea */
+    appearance: none;
+    /* Quitar flecha nativa si se desea */
     background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23606770%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 10px center;
@@ -475,8 +592,10 @@ input::placeholder {
 
 /* Botón estilizado delgado */
 .btn-thin {
-    padding: 8px 16px !important; /* Altura reducida */
-    font-size: 18px !important;    /* Letra legible pero elegante */
+    padding: 8px 16px !important;
+    /* Altura reducida */
+    font-size: 18px !important;
+    /* Letra legible pero elegante */
     margin-top: 15px !important;
 }
 

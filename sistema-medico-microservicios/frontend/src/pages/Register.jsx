@@ -128,8 +128,8 @@ function Register() {
       } else {
         // Si llegara a fallar aquí (muy raro), al menos ya sabemos que el Paso 0 falló por algo más
         await fetch(`${API_URL}/api/auth/users/${creadoUsuarioId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${bodyAuth.token}` }
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${bodyAuth.token}` }
         });
         const errorMsg = await resProfile.text();
         console.error("Error en Perfil:", errorMsg);
@@ -144,7 +144,7 @@ function Register() {
     <div className="auth-wrapper" style={{ flexDirection: 'column' }}>
 
       <div className="brand-section" style={{ textAlign: 'center', padding: 0, marginBottom: '20px' }}>
-        <h1 className="fb-logo" style={{ fontSize: '4rem', marginBottom: 0 }}>APOLO</h1>
+        <h1 className="logo-apolo-unified">APOLO</h1>
       </div>
 
       <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}>
@@ -159,12 +159,12 @@ function Register() {
             <div className="form-row">
               <div className="form-group">
                 <label className="field-label">Nombre</label>
-                <input type="text" name="nombre" placeholder="Ej: Juan" required onChange={handleInputChange} maxLength="20"/>
+                <input type="text" name="nombre" placeholder="Ej: Juan" required onChange={handleInputChange} maxLength="20" />
                 {errors.nombre && <span className="error-label">{errors.nombre}</span>}
               </div>
               <div className="form-group">
                 <label className="field-label">Apellido</label>
-                <input type="text" name="apellido" placeholder="Ej: Pérez" required onChange={handleInputChange} maxLength="20"/>
+                <input type="text" name="apellido" placeholder="Ej: Pérez" required onChange={handleInputChange} maxLength="20" />
                 {errors.apellido && <span className="error-label">{errors.apellido}</span>}
               </div>
             </div>
@@ -184,12 +184,12 @@ function Register() {
             <div className="form-row">
               <div className="form-group">
                 <label className="field-label">Identificación</label>
-                <input type="text" name="identificacion" placeholder="1234567890" required onChange={handleInputChange} maxLength="10"/>
+                <input type="text" name="identificacion" placeholder="1234567890" required onChange={handleInputChange} maxLength="10" />
                 {errors.identificacion && <span className="error-label">{errors.identificacion}</span>}
               </div>
               <div className="form-group">
                 <label className="field-label">Teléfono</label>
-                <input type="tel" name="telefono" placeholder="0999999999" onChange={handleInputChange} maxLength="10"/>
+                <input type="tel" name="telefono" placeholder="0999999999" onChange={handleInputChange} maxLength="10" />
                 {errors.telefono && <span className="error-label">{errors.telefono}</span>}
               </div>
             </div>
@@ -217,7 +217,7 @@ function Register() {
                 </div>
                 <div className="form-group">
                   <label className="field-label">Número de Licencia</label>
-                  <input type="text" name="numeroLicencia" placeholder="Obligatorio para médicos" maxLength="10"/>
+                  <input type="text" name="numeroLicencia" placeholder="Obligatorio para médicos" maxLength="10" />
                 </div>
               </div>
             )}

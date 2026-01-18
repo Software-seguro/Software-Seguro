@@ -8,7 +8,7 @@ import '../css/styles.css';
 function ResetPage() {
     const navigate = useNavigate();
     const location = useLocation();
-    
+
     const [email, setEmail] = useState("");
     const [oobCode, setOobCode] = useState("");
     const [loading, setLoading] = useState(true);
@@ -90,10 +90,10 @@ function ResetPage() {
         <div className="auth-wrapper">
             <div className="modal-overlay">
                 <div className="modal-card">
-                    <h1 className="fb-logo" style={{ fontSize: '3rem', marginBottom: '10px' }}>APOLO</h1>
+                    <h1 className="logo-apolo-unified">APOLO</h1>
                     <h2>Nueva contraseña</h2>
-                    <p style={{ marginBottom: '20px' }}>Restableciendo cuenta: <br/> <b>{email}</b></p>
-                    
+                    <p style={{ marginBottom: '20px' }}>Restableciendo cuenta: <br /> <b>{email}</b></p>
+
                     <form onSubmit={handleUpdate} noValidate>
                         <div className="form-group">
                             <label className="field-label">Contraseña nueva</label>

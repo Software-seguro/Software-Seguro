@@ -126,7 +126,7 @@ function Login() {
       <div className="main-container">
         {/* Lado Izquierdo: Branding */}
         <div className="brand-section">
-          <h1>APOLO</h1>
+          <h1 className="logo-apolo-unified">APOLO</h1>
           <p>Gestiona tu historial clínico de forma segura.</p>
         </div>
 
@@ -141,20 +141,21 @@ function Login() {
               <div className="form-group">
                 <input type="password" name="password" placeholder="Contraseña" required />
               </div>
+
               <button type="submit" className="btn btn-primary" disabled={loading}>
                 {loading ? 'Cargando...' : 'Iniciar sesión'}
               </button>
             </form>
 
             <Link to="/forgot" className="forgot-link">¿Olvidaste tu contraseña?</Link>
-            
+
             <div className="separator"></div>
-            
+
             <div style={{ textAlign: 'center' }}>
               <Link to="/register" className="btn btn-success">Crear cuenta nueva</Link>
             </div>
           </div>
-          
+
           <p className="fb-footer-text">
             <strong>KeiMag</strong> para ti y tu empresa
           </p>
