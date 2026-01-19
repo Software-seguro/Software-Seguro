@@ -106,7 +106,7 @@ const register = async (req, res) => {
         const token = jwt.sign(
             { id: newUser.UsuarioID, rol: rolId, email: newUser.Email },
             process.env.JWT_SECRET,
-            { expiresIn: '15m' }
+            { expiresIn: '5m' }
         );
 
         // 6. Respuesta final
@@ -259,7 +259,7 @@ const verify2FA = async (req, res) => {
             .query('UPDATE Usuarios SET Codigo2FA = NULL, Expiracion2FA = NULL WHERE UsuarioID = @ID');
 
         const payload = { id: dbUser.UsuarioID, rol: dbUser.RolID, email: dbUser.Email };
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' });
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5m' });
 
         await registrarLog({
             nivel: 'INFO',

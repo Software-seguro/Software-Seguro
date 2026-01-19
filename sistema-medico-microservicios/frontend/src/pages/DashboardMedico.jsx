@@ -18,6 +18,9 @@ function DashboardMedico() {
 
     const [modalReAuth, setModalReAuth] = useState({ isOpen: false, password: '', pendingAction: null });
 
+    const [showExpireModal, setShowExpireModal] = useState(false);
+    const timerRef = useRef(null);
+
     // --- MODALES ---
     const [modalUser, setModalUser] = useState({ isOpen: false, data: null });
     const [modalConsulta, setModalConsulta] = useState({ isOpen: false, data: null });
@@ -77,6 +80,11 @@ function DashboardMedico() {
         const fetchProfile = async () => {
             try {
                 const res = await fetch(`${API_URL}/api/core/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+
+                if (res.status === 401) {
+                    setShowExpireModal(true);
+                    throw new Error("Sesión expirada");
+                }
                 if (res.ok) {
                     const data = await res.json();
                     setMedico({
@@ -88,6 +96,7 @@ function DashboardMedico() {
             } catch (error) { console.error(error); }
         };
 
+
         fetchProfile();
         cargarPacientes();
         cargarListaMedicos();
@@ -97,6 +106,10 @@ function DashboardMedico() {
         try {
             const token = sessionStorage.getItem('token');
             const res = await fetch(`${API_URL}/api/core/pacientes`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.status === 401) {
+                setShowExpireModal(true);
+                throw new Error("Sesión expirada");
+            }
             if (res.ok) {
                 const data = await res.json();
                 setPacientes(data);
@@ -109,6 +122,10 @@ function DashboardMedico() {
         try {
             const token = sessionStorage.getItem('token');
             const res = await fetch(`${API_URL}/api/core/lista-medicos`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.status === 401) {
+                setShowExpireModal(true);
+                throw new Error("Sesión expirada");
+            }
             if (res.ok) setMedicosList(await res.json());
         } catch (error) { console.error(error); }
     };
@@ -126,6 +143,7 @@ function DashboardMedico() {
                 fetch(`${API_URL}/api/clinical/paciente/${pacienteId}/consultas`, { headers: { 'Authorization': `Bearer ${token}` } }),
                 fetch(`${API_URL}/api/clinical/paciente/${pacienteId}/examenes`, { headers: { 'Authorization': `Bearer ${token}` } })
             ]);
+            if (resC.status === 401 || resE.status === 401) return setShowExpireModal(true);
             setHistoria({ consultas: await resC.json(), examenes: await resE.json() });
         } catch (error) { console.error(error); }
     };
@@ -155,6 +173,10 @@ function DashboardMedico() {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(payload)
             });
+            if (res.status === 401) {
+                setShowExpireModal(true);
+                throw new Error("Sesión expirada");
+            }
             if (res.ok) {
                 setModalUser({ isOpen: false, data: null });
                 cargarPacientes();
@@ -191,6 +213,10 @@ function DashboardMedico() {
                 body: JSON.stringify(payload)
             });
 
+            if (res.status === 401) {
+                setShowExpireModal(true);
+                throw new Error("Sesión expirada");
+            }
             if (res.ok) {
                 setModalConsulta({ isOpen: false, data: null });
                 recargarHistoria(selectedPaciente.UsuarioID);
@@ -227,9 +253,14 @@ function DashboardMedico() {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(payload)
             });
+            if (res.status === 401) {
+                setShowExpireModal(true);
+                throw new Error("Sesión expirada");
+            }
 
             if (res.ok) {
                 setModalExamen({ isOpen: false, data: null, consultaId: null });
+                showAlert("Éxito", "Examen guardado", "success");
                 recargarHistoria(selectedPaciente.UsuarioID);
             }
 
@@ -243,7 +274,6 @@ function DashboardMedico() {
         });
     };
 
-    // --- LÓGICA CHAT ---
     // --- LÓGICA CHAT SEGURO ---
     useEffect(() => {
         const token = sessionStorage.getItem('token');
@@ -251,8 +281,6 @@ function DashboardMedico() {
 
         if (activeChat && view === 'chat' && token) {
             // 1. Cargar historial de forma SEGURA (HTTP con Header Authorization)
-            // Nota: Asegúrate de que el Gateway redirija /api/chat al puerto 3004
-            // O usa directamente http://localhost:3004/api/chat/...
             fetch(`${API_URL}/api/chat/historial/${myId}/${activeChat.UsuarioID}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -313,6 +341,10 @@ function DashboardMedico() {
                 body: JSON.stringify({ password: modalReAuth.password })
             });
 
+            if (res.status === 401) {
+                setShowExpireModal(true);
+                throw new Error("Sesión expirada");
+            }
             if (res.ok) {
                 const actionToExecute = modalReAuth.pendingAction;
                 setModalReAuth({ isOpen: false, password: '', pendingAction: null });
@@ -324,6 +356,48 @@ function DashboardMedico() {
         } catch (error) {
             showAlert("Error", "No se pudo conectar con el servicio de seguridad.", "danger");
         }
+    };
+
+    // --- LÓGICA DE EXPIRACIÓN DE SESIÓN ---
+    useEffect(() => {
+        const tiempoLimite = 5 * 60 * 1000; // 5 minutos en milisegundos
+
+        const resetTimer = () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+
+            timerRef.current = setTimeout(() => {
+                // Acción cuando se agota el tiempo
+                cerrarSesionPorInactividad();
+            }, tiempoLimite);
+        };
+
+        const cerrarSesionPorInactividad = () => {
+            // No borramos el storage de inmediato para que el modal sepa que hubo una sesión
+            setShowExpireModal(true);
+        };
+
+        // Escuchar eventos de actividad del usuario
+        window.addEventListener('mousemove', resetTimer);
+        window.addEventListener('keydown', resetTimer);
+        window.addEventListener('click', resetTimer);
+        window.addEventListener('scroll', resetTimer);
+
+        // Iniciar el temporizador al cargar
+        resetTimer();
+
+        // Limpieza al desmontar el componente
+        return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+            window.removeEventListener('mousemove', resetTimer);
+            window.removeEventListener('keydown', resetTimer);
+            window.removeEventListener('click', resetTimer);
+            window.removeEventListener('scroll', resetTimer);
+        };
+    }, []);
+
+    const handleFinalizarExpiracion = () => {
+        sessionStorage.clear();
+        navigate('/');
     };
 
     return (
@@ -480,6 +554,10 @@ function DashboardMedico() {
                                                                 method: 'DELETE',
                                                                 headers: { 'Authorization': `Bearer ${token}` }
                                                             });
+                                                            if (res.status === 401) {
+                                                                setShowExpireModal(true);
+                                                                throw new Error("Sesión expirada");
+                                                            }
 
                                                             if (res.ok) {
                                                                 recargarHistoria(selectedPaciente.UsuarioID);
@@ -836,6 +914,18 @@ function DashboardMedico() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            {showExpireModal && (
+                <div className="modal-overlay" style={{ zIndex: 6000 }}>
+                    <div className="modal-card notification-modal">
+                        <div className="warning-icon">🕒</div>
+                        <h2 className="text-warning">Sesión Expirada</h2>
+                        <p>Tu sesión ha finalizado por inactividad (5 minutos) para proteger la información del paciente.</p>
+                        <button className="btn btn-primary" onClick={handleFinalizarExpiracion}>
+                            Regresar al Inicio
+                        </button>
                     </div>
                 </div>
             )}

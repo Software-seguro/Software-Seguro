@@ -14,6 +14,9 @@ function DashboardPaciente() {
     const [examenes, setExamenes] = useState([]);
     const [medicoAsignado, setMedicoAsignado] = useState({ id: null, nombre: '', especialidad: '' });
 
+    const [showExpireModal, setShowExpireModal] = useState(false);
+    const timerRef = useRef(null);
+
     // --- CHAT ---
     const [chatMessages, setChatMessages] = useState([]);
     const [chatInput, setChatInput] = useState('');
@@ -33,6 +36,10 @@ function DashboardPaciente() {
                 const resProfile = await fetch(`${API_URL}/api/core/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                if (resProfile.status === 401) {
+                    setShowExpireModal(true);
+                    throw new Error("Sesión expirada");
+                }
                 if (resProfile.ok) {
                     const data = await resProfile.json();
                     setPaciente({
@@ -60,6 +67,14 @@ function DashboardPaciente() {
                 fetch(`${API_URL}/api/clinical/paciente/${id}/consultas`, { headers: { 'Authorization': `Bearer ${token}` } }),
                 fetch(`${API_URL}/api/clinical/paciente/${id}/examenes`, { headers: { 'Authorization': `Bearer ${token}` } })
             ]);
+            if (resC.status === 401) {
+                setShowExpireModal(true);
+                throw new Error("Sesión expirada");
+            }
+            if (resE.status === 401) {
+                setShowExpireModal(true);
+                throw new Error("Sesión expirada");
+            }
             if (resC.ok) setConsultas(await resC.json());
             if (resE.ok) setExamenes(await resE.json());
         } catch (error) { console.error(error); }
@@ -81,6 +96,10 @@ function DashboardPaciente() {
                 }
             })
                 .then(res => {
+                    if (res.status === 401) {
+                        setShowExpireModal(true);
+                        throw new Error("Sesión expirada");
+                    }
                     if (!res.ok) throw new Error("No autorizado");
                     return res.json();
                 })
@@ -114,6 +133,48 @@ function DashboardPaciente() {
         };
         ws.current.send(JSON.stringify(msg));
         setChatInput('');
+    };
+
+    // --- LÓGICA DE EXPIRACIÓN DE SESIÓN ---
+    useEffect(() => {
+        const tiempoLimite = 5 * 60 * 1000; // 5 minutos en milisegundos
+
+        const resetTimer = () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+
+            timerRef.current = setTimeout(() => {
+                // Acción cuando se agota el tiempo
+                cerrarSesionPorInactividad();
+            }, tiempoLimite);
+        };
+
+        const cerrarSesionPorInactividad = () => {
+            // No borramos el storage de inmediato para que el modal sepa que hubo una sesión
+            setShowExpireModal(true);
+        };
+
+        // Escuchar eventos de actividad del usuario
+        window.addEventListener('mousemove', resetTimer);
+        window.addEventListener('keydown', resetTimer);
+        window.addEventListener('click', resetTimer);
+        window.addEventListener('scroll', resetTimer);
+
+        // Iniciar el temporizador al cargar
+        resetTimer();
+
+        // Limpieza al desmontar el componente
+        return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+            window.removeEventListener('mousemove', resetTimer);
+            window.removeEventListener('keydown', resetTimer);
+            window.removeEventListener('click', resetTimer);
+            window.removeEventListener('scroll', resetTimer);
+        };
+    }, []);
+
+    const handleFinalizarExpiracion = () => {
+        sessionStorage.clear();
+        navigate('/');
     };
 
     return (
@@ -270,6 +331,18 @@ function DashboardPaciente() {
                                 />
                                 <button className="btn btn-primary" style={{ width: '50px', borderRadius: '50%', height: '40px', margin: 0 }} onClick={enviarMensaje}>
                                     <i className="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                    {showExpireModal && (
+                        <div className="modal-overlay" style={{ zIndex: 6000 }}>
+                            <div className="modal-card notification-modal">
+                                <div className="warning-icon">🕒</div>
+                                <h2 className="text-warning">Sesión Expirada</h2>
+                                <p>Tu sesión ha finalizado por inactividad (5 minutos) para proteger la información del paciente.</p>
+                                <button className="btn btn-primary" onClick={handleFinalizarExpiracion}>
+                                    Regresar al Inicio
                                 </button>
                             </div>
                         </div>
