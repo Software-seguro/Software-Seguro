@@ -259,7 +259,7 @@ const verify2FA = async (req, res) => {
             .query('UPDATE Usuarios SET Codigo2FA = NULL, Expiracion2FA = NULL WHERE UsuarioID = @ID');
 
         const payload = { id: dbUser.UsuarioID, rol: dbUser.RolID, email: dbUser.Email };
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5m' });
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '10m' });
 
         await registrarLog({
             nivel: 'INFO',
