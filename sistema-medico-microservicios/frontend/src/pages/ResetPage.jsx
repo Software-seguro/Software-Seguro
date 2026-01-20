@@ -114,7 +114,7 @@ function ResetPage() {
 
             {/* Modal de Notificación */}
             {notification.show && (
-                <div className="modal-overlay" style={{ zIndex: 1300 }}>
+                <div className="modal-overlay" style={{ zIndex: 5000 }}>
                     <div className="modal-card notification-modal">
                         <div className={notification.type === "success" ? "success-icon" : "error-icon"}>
                             {notification.type === "success" ? "✓" : "✕"}
