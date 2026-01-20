@@ -8,7 +8,13 @@ const chatRepo = require('./src/repositories/chatRepository');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: [
+        'http://localhost:5173', // Tu Vite local
+        /\.azurestaticapps\.net$/ // Cualquier URL de Azure Static Web Apps (Frontend)
+    ],
+    credentials: true
+}));
 app.use(express.json());
 
 // RUTAS HTTP (Historial)

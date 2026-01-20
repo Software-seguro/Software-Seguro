@@ -8,7 +8,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware de seguridad básica
-app.use(cors());
+app.use(cors({
+    origin: [
+        'http://localhost:5173', // Tu Vite local
+        /\.azurestaticapps\.net$/ // Cualquier URL de Azure Static Web Apps (Frontend)
+    ],
+    credentials: true
+}));
 //app.use(express.json());
 
 // Rutas de prueba para verificar que el Gateway vive
@@ -18,9 +24,15 @@ app.get('/', (req, res) => {
 
 // --- ENRUTAMIENTO DE MICROSERVICIOS ---
 
+// Usa variables de entorno, si no existen (como en tu PC), usa el localhost
+const AUTH_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
+const CORE_URL = process.env.CORE_SERVICE_URL || 'http://localhost:3002';
+const CLINICAL_URL = process.env.CLINICAL_SERVICE_URL || 'http://localhost:3003';
+const CHAT_URL = process.env.CHAT_SERVICE_URL || 'http://localhost:3004';
+
 // 1. Auth Service (Puerto 3001)
 app.use('/api/auth', createProxyMiddleware({
-    target: 'http://localhost:3001',
+    target: AUTH_URL,
     changeOrigin: true,
     pathRewrite: {
         '^/api/auth': '', // Elimina /api/auth antes de enviarlo al microservicio
@@ -29,25 +41,27 @@ app.use('/api/auth', createProxyMiddleware({
 
 // 2. Core Service (Perfiles) (Puerto 3002)
 app.use('/api/core', createProxyMiddleware({
-    target: 'http://localhost:3002',
+    target: CORE_URL,
     changeOrigin: true,
     pathRewrite: { '^/api/core': '' },
 }));
 
 // 3. Clinical Service (Puerto 3003)
 app.use('/api/clinical', createProxyMiddleware({
-    target: 'http://localhost:3003',
+    target: CLINICAL_URL,
     changeOrigin: true,
     pathRewrite: { '^/api/clinical': '' },
 }));
 
 // 4. Chat Service (Puerto 3004) - Notar que WS necesita configuración especial, por ahora HTTP
 app.use('/api/chat', createProxyMiddleware({
-    target: 'http://localhost:3004',
+    target: CHAT_URL,
     changeOrigin: true,
     pathRewrite: { '^/api/chat': '' },
 }));
 
-app.listen(PORT, () => {
-    console.log(`Gateway corriendo en http://localhost:${PORT}`);
+
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Gateway corriendo en el puerto: ${PORT}`);
+    // No imprimimos http://localhost porque en la nube la URL será distinta
 });

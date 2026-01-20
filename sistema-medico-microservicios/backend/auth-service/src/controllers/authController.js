@@ -7,7 +7,22 @@ const userRepo = require('../repositories/userRepository');
 const { getConnection, sql } = require('../config/db');
 const { registrarLog } = require('../utils/logger');
 const admin = require('firebase-admin');
-const serviceAccount = require('../config/firebase-admin-key.json');
+
+let serviceAccount;
+
+if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    // Si estamos en Azure, leemos la variable de entorno
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+} else {
+    // Si estamos en local, usamos el archivo (asegúrate que esté en .gitignore)
+    serviceAccount = require('../config/firebase-admin-key.json');
+}
+
+if (!admin.apps.length) {
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+    });
+}
 
 require('dotenv').config();
 

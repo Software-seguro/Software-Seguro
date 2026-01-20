@@ -18,6 +18,7 @@ app.use('/', authRoutes); // Quedará como POST /register y POST /login
 // Endpoint de salud
 app.get('/ping', (req, res) => res.send('Auth Service OK'));
 
-app.listen(PORT, () => {
-    console.log(`Auth Service corriendo en http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Auth Service corriendo en el puerto: ${PORT}`);
+    // No imprimimos http://localhost porque en la nube la URL será distinta
 });
