@@ -303,7 +303,7 @@ function DashboardMedico() {
 
             // 2. Conectar WebSocket de forma SEGURA (Enviando TOKEN, no el ID)
             // El servidor ahora decodifica el token para saber quién eres (FIA)
-            ws.current = new WebSocket(`ws://localhost:3004?token=${token}`);
+            ws.current = new WebSocket(`ws://apolo-chat-fffdazc3dwehc8hx.canadacentral-01.azurewebsites.net?token=${token}`);
 
             ws.current.onopen = () => {
                 console.log("Conexión WebSocket establecida y autenticada");

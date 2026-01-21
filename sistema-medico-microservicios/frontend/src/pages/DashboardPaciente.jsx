@@ -107,7 +107,7 @@ function DashboardPaciente() {
                 .catch(err => console.error("Error historial:", err));
 
             // 2. Conectar WebSocket seguro
-            ws.current = new WebSocket(`ws://localhost:3004?token=${token}`);
+            ws.current = new WebSocket(`ws://apolo-chat-fffdazc3dwehc8hx.canadacentral-01.azurewebsites.net?token=${token}`);
 
             ws.current.onmessage = (e) => {
                 const msg = JSON.parse(e.data);
