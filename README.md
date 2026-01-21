@@ -6,11 +6,6 @@ El backend gestiona tanto la API REST como el servicio de los archivos estático
 
 ## Estructura del Proyecto
 
-- `monoapp/` — Carpeta raíz de la aplicación.
-  - `public/` — Contiene todo el Frontend (HTML, CSS, JS, Imágenes).
-  - `server.js` — Servidor Express (Lógica de negocio, API y WebSockets).
-  - `package.json` — Dependencias y scripts de inicio.
-
 ## Requisitos Previos
 
 1. **Node.js** (v14 o superior).
