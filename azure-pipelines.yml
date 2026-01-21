@@ -2,7 +2,7 @@ trigger:
   - DevOps
 
 pool:
-  vmImage: 'ubuntu-latest'
+   name: 'Default'
 
 jobs:
 # 1. JOB PARA GATEWAY
